@@ -20,6 +20,25 @@ Before you begin:
 
 ## Use Case 1 — User Import
 
+### What's happening here?
+
+In a real migration, your legacy database stores user passwords as hashes (e.g. bcrypt). You can't migrate plaintext passwords — and you shouldn't force users to reset. Instead, you export the hashes and hand them to Descope so users can log in with their existing password without ever knowing a migration happened.
+
+In this demo, `lib/data.ts` is the "legacy database" with plaintext passwords. The migration script simulates what a real team would do: bcrypt-hash those passwords, then call Descope's API to import the users.
+
+### API used
+
+**POST** `https://api.descope.com/v1/mgmt/user/create/batch`
+
+- Requires a **Management Key** as a Bearer token (server-side only — never expose this in the browser)
+- Accepts an array of users with fields like `loginIdOrUserId`, `email`, `verifiedEmail`, `displayName`, `customAttributes`, and `hashedPassword`
+- The `hashedPassword.bcrypt.hash` field accepts a standard bcrypt hash string — Descope verifies future logins against it transparently
+- The `customAttributes.freshlyMigrated: true` flag is used later in Use Case 3 to trigger the passkey enrollment flow automatically after first login
+
+**SDK used:** `@descope/node-sdk` → `descope.management.user.createBatch(users)`
+
+---
+
 **Goal:** Migrate Priya and Alex from the legacy system into Descope using the Batch Create Users API, simulating a real password hash migration.
 
 ### Step 1 — Create the `freshlyMigrated` custom attribute in Descope Console
