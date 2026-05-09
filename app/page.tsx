@@ -38,18 +38,6 @@ export default function LoginPage() {
           onError={(e) => console.error("Auth error:", e)}
         />
 
-        {/* Demo credentials */}
-        <div style={{ marginTop: "36px", padding: "16px", background: "var(--off-white)", borderRadius: "8px", border: "1px solid #e8e0d0" }}>
-          <p style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", letterSpacing: "1.5px", marginBottom: "10px", fontFamily: "Trebuchet MS, sans-serif" }}>DEMO CREDENTIALS</p>
-          {[
-            { label: "Priya (India)", email: "priya@securebank.com", pass: "Test@123" },
-            { label: "Alex (Australia)", email: "alex@securebank.com", pass: "Test@123" },
-          ].map((c) => (
-            <div key={c.email} style={{ padding: "3px 0", fontSize: "12px", color: "var(--navy-light)", fontFamily: "Trebuchet MS, sans-serif" }}>
-              <span style={{ fontWeight: "700" }}>{c.label}:</span> {c.email} / {c.pass}
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Right — Banner */}
