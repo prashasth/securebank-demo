@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@descope/nextjs-sdk": "^0.15.28",
     "@descope/node-sdk": "^2.5.0",
     "bcryptjs": "^3.0.3",
     "lucide-react": "^1.14.0",

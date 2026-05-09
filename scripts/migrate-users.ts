@@ -51,7 +51,7 @@ async function migrateUsers() {
   const { data, error } = await descope.management.user.createBatch(batchUsers);
 
   if (error) {
-    console.error("\nMigration failed:", error.message);
+    console.error("\nMigration failed:", error.errorMessage ?? error.errorDescription);
     process.exit(1);
   }
 

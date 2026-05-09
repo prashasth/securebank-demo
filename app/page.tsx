@@ -1,33 +1,15 @@
 "use client";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth";
-import { Eye, EyeOff, Shield, Lock } from "lucide-react";
+import { Descope } from "@descope/nextjs-sdk";
+import { Shield } from "lucide-react";
 
 export default function LoginPage() {
-  const { login } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    const result = login(email, password);
-    setLoading(false);
-    if (result.success) {
-      router.push(email === "admin@securebank.com" ? "/admin" : "/dashboard");
-    } else {
-      setError(result.error || "Login failed.");
-    }
+  const handleSuccess = (e: CustomEvent) => {
+    const email = e.detail?.user?.email ?? "";
+    router.push(email === "admin@securebank.com" ? "/admin" : "/dashboard");
   };
-
-  const fillCreds = (e: string, p: string) => { setEmail(e); setPassword(p); setError(""); };
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -49,47 +31,12 @@ export default function LoginPage() {
         <h1 style={{ fontSize: "28px", fontWeight: "700", color: "var(--navy)", marginBottom: "8px" }}>Welcome Back</h1>
         <p style={{ color: "var(--text-muted)", marginBottom: "36px", fontFamily: "Trebuchet MS, sans-serif", fontSize: "14px" }}>Sign in to access your account securely</p>
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: "700", color: "var(--navy)", marginBottom: "8px", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1px" }}>EMAIL ADDRESS</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@securebank.com" required
-              style={{ width: "100%", padding: "13px 16px", border: "1.5px solid #ddd", borderRadius: "8px", fontSize: "14px", fontFamily: "Trebuchet MS, sans-serif", color: "var(--navy)", outline: "none", background: "#fafafa" }}
-              onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
-              onBlur={(e) => (e.target.style.borderColor = "#ddd")}
-            />
-          </div>
-
-          <div style={{ marginBottom: "12px" }}>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: "700", color: "var(--navy)", marginBottom: "8px", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1px" }}>PASSWORD</label>
-            <div style={{ position: "relative" }}>
-              <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" required
-                style={{ width: "100%", padding: "13px 48px 13px 16px", border: "1.5px solid #ddd", borderRadius: "8px", fontSize: "14px", fontFamily: "Trebuchet MS, sans-serif", color: "var(--navy)", outline: "none", background: "#fafafa" }}
-                onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
-                onBlur={(e) => (e.target.style.borderColor = "#ddd")}
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)}
-                style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-
-          <div style={{ textAlign: "right", marginBottom: "28px" }}>
-            <a href="#" style={{ fontSize: "13px", color: "var(--gold)", textDecoration: "none", fontFamily: "Trebuchet MS, sans-serif" }}>Forgot password?</a>
-          </div>
-
-          {error && (
-            <div style={{ background: "#fff5f5", border: "1px solid #fed7d7", borderRadius: "8px", padding: "12px 16px", color: "var(--danger)", fontSize: "13px", marginBottom: "20px", fontFamily: "Trebuchet MS, sans-serif" }}>
-              {error}
-            </div>
-          )}
-
-          <button type="submit" disabled={loading}
-            style={{ width: "100%", padding: "15px", background: loading ? "#aaa" : "var(--navy)", color: "var(--gold)", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: "700", cursor: loading ? "not-allowed" : "pointer", letterSpacing: "1.5px", fontFamily: "Trebuchet MS, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-            <Lock size={15} />
-            {loading ? "SIGNING IN..." : "SIGN IN SECURELY"}
-          </button>
-        </form>
+        {/* Descope Flow */}
+        <Descope
+          flowId="sign-up-or-in-passwords"
+          onSuccess={handleSuccess as never}
+          onError={(e) => console.error("Auth error:", e)}
+        />
 
         {/* Demo credentials */}
         <div style={{ marginTop: "36px", padding: "16px", background: "var(--off-white)", borderRadius: "8px", border: "1px solid #e8e0d0" }}>
@@ -97,12 +44,10 @@ export default function LoginPage() {
           {[
             { label: "Priya (India)", email: "priya@securebank.com", pass: "Test@123" },
             { label: "Alex (Australia)", email: "alex@securebank.com", pass: "Test@123" },
-            { label: "Admin", email: "admin@securebank.com", pass: "Admin@123" },
           ].map((c) => (
-            <button key={c.email} type="button" onClick={() => fillCreds(c.email, c.pass)}
-              style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", padding: "3px 0", fontSize: "12px", color: "var(--navy-light)", fontFamily: "Trebuchet MS, sans-serif" }}>
-              <span style={{ fontWeight: "700" }}>{c.label}:</span> {c.email}
-            </button>
+            <div key={c.email} style={{ padding: "3px 0", fontSize: "12px", color: "var(--navy-light)", fontFamily: "Trebuchet MS, sans-serif" }}>
+              <span style={{ fontWeight: "700" }}>{c.label}:</span> {c.email} / {c.pass}
+            </div>
           ))}
         </div>
       </div>
