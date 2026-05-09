@@ -22,28 +22,43 @@ Before you begin:
 
 ### What's happening here?
 
-In a real migration, your legacy database stores user passwords as hashes (e.g. bcrypt). You can't migrate plaintext passwords — and you shouldn't force users to reset. Instead, you export the hashes and hand them to Descope so users can log in with their existing password without ever knowing a migration happened.
+When migrating users from a legacy system to a new identity provider like Descope, one of the biggest concerns is disruption — you don't want to force every user to reset their password just because the backend changed. Descope solves this with **hashed password import**: you export the password hashes from your old database and pass them directly to Descope. From that point on, when a user logs in with their existing password, Descope verifies it against the imported hash transparently. The user never knows a migration happened.
 
-In this demo, `lib/data.ts` is the "legacy database" with plaintext passwords. The migration script simulates what a real team would do: bcrypt-hash those passwords, then call Descope's API to import the users.
-
-### API used
-
-**POST** `https://api.descope.com/v1/mgmt/user/create/batch`
-
-- Requires a **Management Key** as a Bearer token (server-side only — never expose this in the browser)
-- Accepts an array of users with fields like `loginIdOrUserId`, `email`, `verifiedEmail`, `displayName`, `customAttributes`, and `hashedPassword`
-- The `hashedPassword.bcrypt.hash` field accepts a standard bcrypt hash string — Descope verifies future logins against it transparently
-- The `customAttributes.freshlyMigrated: true` flag is used later in Use Case 3 to trigger the passkey enrollment flow automatically after first login
-
-**SDK used:** `@descope/node-sdk` → `descope.management.user.createBatch(users)`
+In this demo, `lib/data.ts` acts as the legacy database. It stores passwords in plaintext (which a real system would never do — a real DB would store bcrypt hashes). The migration script simulates what a real engineering team would do:
+1. Export users and their password hashes from the old database
+2. Call Descope's Batch Create Users API to import them
+3. Tag each user with `freshlyMigrated: true` so the app can trigger a passkey enrollment flow on their next login (Use Case 3)
 
 ---
 
-**Goal:** Migrate Priya and Alex from the legacy system into Descope using the Batch Create Users API, simulating a real password hash migration.
+### API used
 
-### Step 1 — Create the `freshlyMigrated` custom attribute in Descope Console
+**`POST https://api.descope.com/v1/mgmt/user/create/batch`**
 
-Before importing users, you need to register the custom attribute in Descope so it can be stored against each user.
+This is a **Management API** — it requires a Management Key, not a user session token. It's meant to be called server-side only (migration scripts, backend jobs) and should never be exposed to the browser.
+
+Key request fields:
+
+| Field | Description |
+|-------|-------------|
+| `loginIdOrUserId` | The unique login identifier — we use the email address |
+| `email` | The user's email |
+| `verifiedEmail: true` | Marks the email as already verified — skips re-verification since the legacy system already verified it |
+| `displayName` | The user's full name |
+| `hashedPassword.bcrypt.hash` | The bcrypt hash string — Descope will verify future logins against this |
+| `customAttributes.freshlyMigrated` | A custom boolean flag we define — used in Use Case 3 to detect first-time logins and prompt passkey enrollment |
+
+**SDK:** `@descope/node-sdk` → `descope.management.user.createBatch(users)`
+
+Descope supports these hashing algorithms for import: `bcrypt`, `argon2`, `pbkdf2`, `firebase`, `django`, `phpass`, `md5`, and `sha` variants. This means you can migrate from virtually any major stack without forcing password resets.
+
+---
+
+### Step 1 — Create the `freshlyMigrated` custom attribute
+
+Before importing users, you need to define the `freshlyMigrated` attribute in your Descope project. Descope won't accept unknown custom attributes — they must be declared in the schema first.
+
+This attribute is a boolean flag that will be set to `true` on every imported user. Later, in Use Case 3, the app checks this flag after login to decide whether to show the passkey enrollment prompt.
 
 1. Go to **Console → Users → Custom Attributes** tab
    ([app.descope.com/users/attributes](https://app.descope.com/users/attributes))
@@ -51,9 +66,9 @@ Before importing users, you need to register the custom attribute in Descope so 
    > ![Custom Attributes tab — empty](screenshots/uc1-01-custom-attributes-empty.png)
 
 2. Click **+ Create Attribute** and fill in:
-   - **Display Name:** `Freshly Migrated`
-   - **Machine Name:** `freshlyMigrated` _(auto-fills)_
-   - **Type:** `Boolean`
+   - **Display Name:** `Freshly Migrated` — human-readable label shown in the Console
+   - **Machine Name:** `freshlyMigrated` — auto-fills; this is the key used in code
+   - **Type:** `Boolean` — since this is a true/false flag
 
    > ![Create Attribute dialog filled in](screenshots/uc1-02-create-attribute-dialog.png)
 
@@ -65,51 +80,47 @@ Before importing users, you need to register the custom attribute in Descope so 
 
 ### Step 2 — Get your Project ID and Management Key
 
-You need two credentials from Descope Console to run the migration.
+You need two credentials from Descope to authenticate the migration script.
 
-**Project ID:**
+**Project ID** identifies your Descope project. It's safe to use in frontend code (prefixed with `NEXT_PUBLIC_`) since it's not a secret — it's like a project name.
 
 1. Go to **Console → Settings → Project**
-2. Copy the **Project ID** field
+2. Copy the **Project ID** field (starts with `P2...`)
 
    > ![Settings → Project showing Project ID](screenshots/uc1-06-project-id.png)
 
-**Management Key:**
+**Management Key** is a privileged server-side secret that grants access to Descope's Management APIs (create users, delete users, etc.). Treat it like a database password — never commit it or expose it in the browser.
 
 1. Go to **Console → Settings → Company → Management Keys**
 2. Click **+ Management Key** and fill in:
    - **Name:** `securebank`
    - **Description:** `securebank demo`
-   - **Expiration:** `30 Days`
-   - **Roles:** `Full Access`
+   - **Expiration:** `30 Days` — for demos, short expiry is fine; production keys should be rotated regularly
+   - **Roles:** `Full Access` — needed to create and manage users
 
    > ![Generate Management Key dialog](screenshots/uc1-07-generate-management-key.png)
 
-3. Click **Generate Key** — copy it immediately, it won't be shown again
+3. Click **Generate Key**. Copy the key immediately — Descope shows it only once and cannot retrieve it later.
 
    > ![Management key created confirmation](screenshots/uc1-08-management-key-created.png)
 
-4. Add both to your `.env.local`:
+4. Create a `.env.local` file in your project root and add both values:
 
-```
-NEXT_PUBLIC_DESCOPE_PROJECT_ID=<your-project-id>
-DESCOPE_MANAGEMENT_KEY=<your-management-key>
-```
+   ```
+   NEXT_PUBLIC_DESCOPE_PROJECT_ID=<your-project-id>
+   DESCOPE_MANAGEMENT_KEY=<your-management-key>
+   ```
 
-> **Note:** The Management Key is a server-side secret. Never commit `.env.local` or expose the key in the browser.
+   > **Important:** `.env.local` is already listed in `.gitignore` — it will never be committed. Never hardcode these values in your source files.
 
 ---
 
 ### Step 3 — Install dependencies
 
-```bash
-npm install bcryptjs @descope/node-sdk
-npm install --save-dev @types/bcryptjs tsx
-```
-
----
-
-### Step 4 — Install dependencies
+The migration script needs two packages:
+- **`bcryptjs`** — to hash the legacy plaintext passwords before importing (simulating what a real DB export would contain)
+- **`@descope/node-sdk`** — Descope's server-side SDK for calling the Management API
+- **`tsx`** — runs TypeScript files directly without a build step (dev only)
 
 ```bash
 npm install bcryptjs @descope/node-sdk
@@ -118,16 +129,35 @@ npm install --save-dev @types/bcryptjs tsx
 
 ---
 
-### Step 5 — Create the migration script
+### Step 4 — Review the migration script
 
-Create `scripts/migrate-users.ts`. This script:
-1. Reads users from `lib/data.ts` (your "legacy database")
-2. Bcrypt-hashes their plaintext passwords (simulating a real DB export)
-3. POSTs to Descope's Batch Create Users API with `freshlyMigrated: true`
+Open `scripts/migrate-users.ts`. Here's what it does step by step:
+
+```typescript
+// 1. For each legacy user, generate a bcrypt hash of their plaintext password
+const hash = await bcrypt.hash(user.password, SALT_ROUNDS);
+
+// 2. Build the Descope user object with the hash and freshlyMigrated flag
+return {
+  loginIdOrUserId: user.email,
+  email: user.email,
+  verifiedEmail: true,        // already verified in the legacy system
+  displayName: user.name,
+  customAttributes: { freshlyMigrated: true },
+  hashedPassword: {
+    bcrypt: { hash },         // Descope stores this and verifies future logins against it
+  },
+};
+
+// 3. Call the Batch Create Users API
+const { data, error } = await descope.management.user.createBatch(batchUsers);
+```
+
+`SALT_ROUNDS = 10` is the bcrypt work factor — higher is more secure but slower to hash. 10 is the industry standard for most applications.
 
 ---
 
-### Step 6 — Run the migration
+### Step 5 — Run the migration
 
 ```bash
 npx tsx scripts/migrate-users.ts
@@ -136,6 +166,7 @@ npx tsx scripts/migrate-users.ts
 Expected output:
 ```
 Migrating 2 users to Descope...
+
   Hashed password for priya@securebank.com
   Hashed password for alex@securebank.com
 
@@ -148,17 +179,19 @@ Migration complete.
 
 ---
 
-### Step 7 — Verify in Descope Console
+### Step 6 — Verify in Descope Console
 
-Navigate to **Console → Users** and confirm both Priya and Alex appear with verified emails:
+Navigate to **Console → Users** and confirm both Priya and Alex appear. Notice their status is **Invited** — this is normal for batch-imported users. They become **Active** after their first login.
 
 > ![Console Users list showing Priya and Alex imported](screenshots/uc1-04-users-imported.png)
 
-Click on a user to confirm `freshlyMigrated` is checked:
+Click on **Priya Sharma** to open her profile. Scroll down and confirm:
+- Email is verified (checkmark next to email)
+- **Freshly Migrated** checkbox is checked
 
 > ![Priya Sharma profile with Freshly Migrated checked](screenshots/uc1-05-user-freshly-migrated.png)
 
-✅ **Use Case 1 complete.** Both users are in Descope with bcrypt-hashed passwords and `freshlyMigrated: true`.
+✅ **Use Case 1 complete.** Both users are now in Descope with bcrypt-hashed passwords and `freshlyMigrated: true`. They can log in with their existing password (`Test@123`) without any reset — and the app will detect the flag to prompt passkey enrollment in Use Case 3.
 
 ---
 
