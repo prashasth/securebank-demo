@@ -285,9 +285,26 @@ This installs Descope's official SDK for Next.js. You only need to run this once
 
 Open the file `app/layout.tsx`. This is the root layout of the app — every page is wrapped by it.
 
-**Find this code:**
+> **How to do it:** Open the file in your editor, press `Cmd+A` (Mac) or `Ctrl+A` (Windows) to select all, then delete. Paste the code below.
+
+Here is what the **original file** looks like (for reference — do not keep this):
+
 ```tsx
-import { AuthProvider } from "@/lib/auth";
+import type { Metadata } from "next";
+import "./globals.css";
+import { AuthProvider } from "@/lib/auth"; // ❌ Only the mock auth provider
+
+export const metadata: Metadata = { ... };
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <AuthProvider>{children}</AuthProvider> {/* ❌ No Descope here */}
+      </body>
+    </html>
+  );
+}
 ```
 
 **Replace the entire file with:**
@@ -316,8 +333,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 **What changed and why:**
-- We import Descope's `AuthProvider` (renamed to `DescopeProvider` to avoid confusion) and wrap the whole app with it — this initializes Descope using your Project ID from `.env.local`
-- The existing `AuthProvider` from `lib/auth.tsx` is renamed to `AppProvider` — it still handles business data like balances and transactions, but now relies on Descope for authentication
+
+| What | Why |
+|------|-----|
+| `import { AuthProvider as DescopeProvider } from "@descope/nextjs-sdk"` | Imports Descope's provider — renamed to avoid clash with the existing `AuthProvider` name |
+| `<DescopeProvider projectId={...}>` wraps everything | Initializes Descope for the whole app using your Project ID from `.env.local` — must be the outermost wrapper |
+| `AuthProvider` from `lib/auth` renamed to `AppProvider` | Same file, new name — it still handles business data (balances, transactions) but no longer does authentication |
 
 ---
 
@@ -453,7 +474,30 @@ export function useAuth() {
 
 ### Step 6 — Update `app/page.tsx`
 
-Open `app/page.tsx`. This is the login page. We are going to remove the entire HTML form and replace it with the Descope Flow component.
+Open `app/page.tsx`. This is the login page. It currently has a custom HTML form with email and password inputs that check hardcoded values. We are going to remove that form entirely and replace it with the Descope Flow component.
+
+> **How to do it:** Open the file in your editor, press `Cmd+A` (Mac) or `Ctrl+A` (Windows) to select all, then delete. Paste the code below.
+
+Here is the **key part of the original file** that we are removing (for reference):
+
+```tsx
+// ❌ All of this is being removed — custom form with hardcoded auth logic
+const { login } = useAuth();
+
+const handleSubmit = async (e: React.FormEvent) => {
+  const result = login(email, password); // ❌ Checks hardcoded passwords
+  if (result.success) {
+    router.push("/dashboard");
+  }
+};
+
+// ❌ Custom HTML form — replaced by Descope Flow
+<form onSubmit={handleSubmit}>
+  <input type="email" value={email} ... />
+  <input type="password" value={password} ... />
+  <button type="submit">SIGN IN SECURELY</button>
+</form>
+```
 
 **Replace the entire file with:**
 ```tsx
@@ -537,10 +581,14 @@ export default function LoginPage() {
 ```
 
 **What changed and why:**
-- Removed the entire HTML form (email input, password input, submit button)
-- Added `<Descope flowId="sign-up-or-in-passwords" />` — this one line tells Descope to render the flow we created in the Console
-- `onSuccess` — when Descope confirms login, we check the email and redirect to `/dashboard` or `/admin`
-- The SecureBank logo, banner, and demo credentials box are unchanged
+
+| What | Why |
+|------|-----|
+| Entire HTML form **removed** | Descope Flow renders its own UI — we don't need custom inputs anymore |
+| `import { login } = useAuth()` **removed** | We no longer call login manually — Descope handles it |
+| `<Descope flowId="sign-up-or-in-passwords" />` **added** | This single line tells Descope to fetch and render the flow we built in the Console |
+| `onSuccess={handleSuccess}` | When Descope confirms the login succeeded, we read the user's email and redirect to `/dashboard` or `/admin` |
+| Logo, banner, demo credentials | Unchanged — only the form area was replaced |
 
 ---
 
