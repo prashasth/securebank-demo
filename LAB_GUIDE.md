@@ -197,7 +197,329 @@ Click on **Priya Sharma** to open her profile. Scroll down and confirm:
 
 ## Use Case 2 — Password Auth
 
-> _Coming soon_
+### What's happening here?
+
+In Use Case 1 we imported Priya and Alex into Descope with their bcrypt-hashed passwords. Now we need to actually replace the fake login form in the app with a real authentication flow powered by Descope.
+
+Currently, the app has a custom HTML form in `app/page.tsx` that checks the user's email and password against hardcoded values in `lib/data.ts`. This is not real authentication — anyone who reads the code can see the passwords. We are going to remove this entirely and replace it with a **Descope Flow**.
+
+A Descope Flow is a no-code authentication journey you build in the Descope Console. When you embed it in your app, Descope renders the UI and handles all the authentication logic — checking if the user exists, verifying the password, managing the session — without you writing any of that code yourself.
+
+After this use case:
+- The login form is powered by Descope
+- Priya and Alex log in with their real passwords (`Test@123`) verified against the bcrypt hashes stored in Descope
+- On success, Descope creates a JWT session — a secure token that proves the user is logged in
+- The app reads that token to identify who is logged in
+
+---
+
+### API / SDK used
+
+**Descope Next.js SDK** — `@descope/nextjs-sdk`
+
+This is Descope's official SDK for Next.js App Router applications. It provides:
+
+| Component / Hook | What it does |
+|-----------------|--------------|
+| `<AuthProvider>` | Wraps the app — initializes Descope with your Project ID |
+| `<Descope flowId="...">` | Renders a Descope Flow inside your page |
+| `useSession()` | Returns `isAuthenticated` — whether the user has a valid session |
+| `useUser()` | Returns the logged-in user's profile (email, name, etc.) |
+| `useDescope()` | Gives access to `logout()` and other SDK methods |
+
+The Flow used is **`sign-up-or-in-passwords`** — a template from Descope's Flow library that:
+1. Asks for an email
+2. Checks if the user exists in Descope
+3. If yes → asks for password → verifies against stored hash → creates session
+4. If no → triggers sign-up (not used in this demo)
+
+---
+
+### Step 1 — Create the password flow in Descope Console
+
+First, go to **Console → Flows** to see your existing flows:
+
+> ![Flows list](screenshots/uc2-01-flows-list.png)
+
+Click **Start from template**, then filter by **Password**:
+
+> ![Flow template library filtered by Password](screenshots/uc2-02-flow-template-password.png)
+
+Select **"Sign up or in - passwords"**. This creates a flow that automatically detects whether the user is signing in or signing up. The flow diagram looks like this:
+
+> ![Password flow diagram](screenshots/uc2-03-password-flow-diagram.png)
+
+When asked to confirm the flow details, note the **Flow ID** — this is what you'll use in the code:
+
+> ![Flow ID: sign-up-or-in-passwords](screenshots/uc2-04-flow-id.png)
+
+Save the flow. It will now appear in your flows list:
+
+> ![Flows list showing sign-up-or-in-passwords](screenshots/uc2-04-flows-list-with-password-flow.png)
+
+---
+
+### Step 2 — Customise the flow screen (optional)
+
+By default the flow shows "Welcome" as its heading — which clashes with the "Welcome Back" text in the SecureBank app. You can change it in the flow editor by clicking on the **Welcome** screen node and editing the heading text.
+
+> ![Flow editor with "Secured by Descope" heading](screenshots/uc2-06-flow-welcome-screen-edited.png)
+
+Click **Done** to save.
+
+---
+
+### Step 3 — Install the Descope Next.js SDK
+
+Open your terminal in the project folder and run:
+
+```bash
+npm install @descope/nextjs-sdk
+```
+
+This installs Descope's official SDK for Next.js. You only need to run this once.
+
+---
+
+### Step 4 — Update `app/layout.tsx`
+
+Open the file `app/layout.tsx`. This is the root layout of the app — every page is wrapped by it.
+
+**Find this code:**
+```tsx
+import { AuthProvider } from "@/lib/auth";
+```
+
+**Replace the entire file with:**
+```tsx
+import type { Metadata } from "next";
+import "./globals.css";
+import { AuthProvider as DescopeProvider } from "@descope/nextjs-sdk";
+import { AppProvider } from "@/lib/auth";
+
+export const metadata: Metadata = {
+  title: "SecureBank — Your Trusted Banking Partner",
+  description: "SecureBank demo application",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <DescopeProvider projectId={process.env.NEXT_PUBLIC_DESCOPE_PROJECT_ID!}>
+          <AppProvider>{children}</AppProvider>
+        </DescopeProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+**What changed and why:**
+- We import Descope's `AuthProvider` (renamed to `DescopeProvider` to avoid confusion) and wrap the whole app with it — this initializes Descope using your Project ID from `.env.local`
+- The existing `AuthProvider` from `lib/auth.tsx` is renamed to `AppProvider` — it still handles business data like balances and transactions, but now relies on Descope for authentication
+
+---
+
+### Step 5 — Update `lib/auth.tsx`
+
+Open `lib/auth.tsx`. This file currently has a fake `login()` function that checks hardcoded passwords. We are going to remove that entirely and replace it with Descope's session hooks.
+
+**Replace the entire file with:**
+```tsx
+"use client";
+import { createContext, useContext, useState, ReactNode } from "react";
+import { useUser, useSession, useDescope } from "@descope/nextjs-sdk/client";
+import { User, Transaction, USERS, TRANSACTIONS } from "./data";
+
+type AppContextType = {
+  user: User | null;
+  users: User[];
+  transactions: Transaction[];
+  disabledUsers: string[];
+  logout: () => void;
+  toggleUser: (id: string) => void;
+  transfer: (recipientId: string, amount: number, note: string) => { success: boolean; error?: string };
+};
+
+const AppContext = createContext<AppContextType | null>(null);
+
+export function AppProvider({ children }: { children: ReactNode }) {
+  const { user: descopeUser } = useUser();
+  const { isAuthenticated } = useSession();
+  const { logout: descopeLogout } = useDescope();
+
+  const [users, setUsers] = useState<User[]>(USERS);
+  const [transactions, setTransactions] = useState<Transaction[]>(TRANSACTIONS);
+  const [disabledUsers, setDisabledUsers] = useState<string[]>([]);
+
+  // Find the local user record by matching Descope's email to our data
+  const user: User | null = isAuthenticated && descopeUser?.email
+    ? users.find((u) => u.email.toLowerCase() === descopeUser.email!.toLowerCase()) ?? null
+    : null;
+
+  const logout = () => descopeLogout();
+
+  const toggleUser = (id: string) => {
+    setDisabledUsers((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  };
+
+  const transfer = (recipientId: string, amount: number, note: string) => {
+    if (!user) return { success: false, error: "Not logged in." };
+    const sender = users.find((u) => u.id === user.id);
+    if (!sender || sender.balance < amount) return { success: false, error: "Insufficient balance." };
+
+    const today = new Date().toISOString().split("T")[0];
+    const txnId = `txn-${Date.now()}`;
+
+    setUsers((prev) => prev.map((u) => {
+      if (u.id === user.id) return { ...u, balance: u.balance - amount };
+      if (u.id === recipientId) return { ...u, balance: u.balance + amount };
+      return u;
+    }));
+
+    const recipient = users.find((u) => u.id === recipientId);
+    setTransactions((prev) => [
+      { id: `${txnId}-debit`, userId: user.id, type: "debit", amount, description: note || `Transfer to ${recipient?.name}`, date: today, status: "completed" },
+      { id: `${txnId}-credit`, userId: recipientId, type: "credit", amount, description: note || `Transfer from ${user.name}`, date: today, status: "completed" },
+      ...prev,
+    ]);
+
+    return { success: true };
+  };
+
+  return (
+    <AppContext.Provider value={{ user, users, transactions, disabledUsers, logout, toggleUser, transfer }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error("useAuth must be used within AppProvider");
+  return ctx;
+}
+```
+
+**What changed and why:**
+- Removed the fake `login()` function — Descope's Flow handles login now
+- Added `useSession()` — tells us if the user has a valid Descope session (`isAuthenticated`)
+- Added `useUser()` — gives us the logged-in user's email from Descope
+- The `user` variable now finds the matching local record by email — so the dashboard still shows the right balance and transactions
+- `logout()` now calls Descope's logout instead of just clearing local state
+
+---
+
+### Step 6 — Update `app/page.tsx`
+
+Open `app/page.tsx`. This is the login page. We are going to remove the entire HTML form and replace it with the Descope Flow component.
+
+**Replace the entire file with:**
+```tsx
+"use client";
+import { useRouter } from "next/navigation";
+import { Descope } from "@descope/nextjs-sdk";
+import { Shield } from "lucide-react";
+
+export default function LoginPage() {
+  const router = useRouter();
+
+  const handleSuccess = (e: CustomEvent) => {
+    const email = e.detail?.user?.email ?? "";
+    router.push(email === "admin@securebank.com" ? "/admin" : "/dashboard");
+  };
+
+  return (
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+      {/* Left — Login Form */}
+      <div style={{ flex: "0 0 480px", background: "#fff", display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 48px", boxShadow: "4px 0 24px rgba(0,0,0,0.08)", position: "relative", zIndex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "48px" }}>
+          <div style={{ width: "44px", height: "44px", background: "var(--navy)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Shield size={24} color="var(--gold)" />
+          </div>
+          <div>
+            <div style={{ fontSize: "22px", fontWeight: "700", color: "var(--navy)" }}>
+              SECURE<span style={{ color: "var(--gold)" }}>BANK</span>
+            </div>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)", letterSpacing: "2px", fontFamily: "Trebuchet MS, sans-serif" }}>YOUR TRUSTED PARTNER</div>
+          </div>
+        </div>
+
+        <h1 style={{ fontSize: "28px", fontWeight: "700", color: "var(--navy)", marginBottom: "8px" }}>Welcome Back</h1>
+        <p style={{ color: "var(--text-muted)", marginBottom: "36px", fontFamily: "Trebuchet MS, sans-serif", fontSize: "14px" }}>Sign in to access your account securely</p>
+
+        {/* Descope Flow renders here */}
+        <Descope
+          flowId="sign-up-or-in-passwords"
+          onSuccess={handleSuccess as never}
+          onError={(e) => console.error("Auth error:", e)}
+        />
+
+        {/* Demo credentials */}
+        <div style={{ marginTop: "36px", padding: "16px", background: "var(--off-white)", borderRadius: "8px", border: "1px solid #e8e0d0" }}>
+          <p style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", letterSpacing: "1.5px", marginBottom: "10px", fontFamily: "Trebuchet MS, sans-serif" }}>DEMO CREDENTIALS</p>
+          {[
+            { label: "Priya (India)", email: "priya@securebank.com", pass: "Test@123" },
+            { label: "Alex (Australia)", email: "alex@securebank.com", pass: "Test@123" },
+          ].map((c) => (
+            <div key={c.email} style={{ padding: "3px 0", fontSize: "12px", color: "var(--navy-light)", fontFamily: "Trebuchet MS, sans-serif" }}>
+              <span style={{ fontWeight: "700" }}>{c.label}:</span> {c.email} / {c.pass}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right — Banner */}
+      <div style={{ flex: 1, background: "linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, #0d2347 100%)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "60px", position: "relative", overflow: "hidden" }}>
+        {[{ s: 400, t: "-100px", r: "-100px" }, { s: 300, b: "-80px", l: "-80px" }, { s: 200, t: "40%", r: "10%" }].map((c, i) => (
+          <div key={i} style={{ position: "absolute", width: `${c.s}px`, height: `${c.s}px`, borderRadius: "50%", border: "1px solid var(--gold)", top: c.t, bottom: c.b, right: c.r, left: c.l, opacity: 0.05 }} />
+        ))}
+        <div style={{ width: "60px", height: "3px", background: "var(--gold)", marginBottom: "32px" }} />
+        <h2 style={{ color: "#fff", fontSize: "40px", fontWeight: "700", textAlign: "center", lineHeight: "1.2", marginBottom: "24px", maxWidth: "480px" }}>
+          Banking Built on <span style={{ color: "var(--gold)" }}>Trust</span> & <span style={{ color: "var(--gold)" }}>Security</span>
+        </h2>
+        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "16px", textAlign: "center", maxWidth: "380px", lineHeight: "1.7", fontFamily: "Trebuchet MS, sans-serif", marginBottom: "48px" }}>
+          Protect your finances with industry-leading security. Trusted by over 2 million customers worldwide.
+        </p>
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
+          {["256-bit Encryption", "24/7 Monitoring", "FDIC Insured"].map((f) => (
+            <div key={f} style={{ padding: "9px 18px", border: "1px solid rgba(201,168,76,0.35)", borderRadius: "24px", color: "var(--gold-light)", fontSize: "12px", fontFamily: "Trebuchet MS, sans-serif", background: "rgba(201,168,76,0.06)" }}>{f}</div>
+          ))}
+        </div>
+        <div style={{ position: "absolute", bottom: "28px", color: "rgba(255,255,255,0.25)", fontSize: "11px", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1.5px" }}>
+          © 2026 SECUREBANK. ALL RIGHTS RESERVED.
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+**What changed and why:**
+- Removed the entire HTML form (email input, password input, submit button)
+- Added `<Descope flowId="sign-up-or-in-passwords" />` — this one line tells Descope to render the flow we created in the Console
+- `onSuccess` — when Descope confirms login, we check the email and redirect to `/dashboard` or `/admin`
+- The SecureBank logo, banner, and demo credentials box are unchanged
+
+---
+
+### Step 7 — Test the login
+
+Start the dev server:
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). You should see the SecureBank login page with the Descope Flow widget:
+
+> ![Login page with Descope flow](screenshots/uc2-07-login-page-updated.jpg)
+
+Enter `priya@securebank.com`, click Continue, enter `Test@123`, and click Sign In. You should land on the dashboard:
+
+> ![Dashboard after successful login](screenshots/uc2-08-login-success.png)
+
+✅ **Use Case 2 complete.** Priya is now authenticated via Descope. Her session is backed by a real JWT token — not a fake in-memory state. The password was verified against the bcrypt hash imported in Use Case 1.
 
 ---
 
