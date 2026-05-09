@@ -63,7 +63,44 @@ Before importing users, you need to register the custom attribute in Descope so 
 
 ---
 
-### Step 2 — Install dependencies
+### Step 2 — Get your Project ID and Management Key
+
+You need two credentials from Descope Console to run the migration.
+
+**Project ID:**
+
+1. Go to **Console → Settings → Project**
+2. Copy the **Project ID** field
+
+   > ![Settings → Project showing Project ID](screenshots/uc1-06-project-id.png)
+
+**Management Key:**
+
+1. Go to **Console → Settings → Company → Management Keys**
+2. Click **+ Management Key** and fill in:
+   - **Name:** `securebank`
+   - **Description:** `securebank demo`
+   - **Expiration:** `30 Days`
+   - **Roles:** `Full Access`
+
+   > ![Generate Management Key dialog](screenshots/uc1-07-generate-management-key.png)
+
+3. Click **Generate Key** — copy it immediately, it won't be shown again
+
+   > ![Management key created confirmation](screenshots/uc1-08-management-key-created.png)
+
+4. Add both to your `.env.local`:
+
+```
+NEXT_PUBLIC_DESCOPE_PROJECT_ID=<your-project-id>
+DESCOPE_MANAGEMENT_KEY=<your-management-key>
+```
+
+> **Note:** The Management Key is a server-side secret. Never commit `.env.local` or expose the key in the browser.
+
+---
+
+### Step 3 — Install dependencies
 
 ```bash
 npm install bcryptjs @descope/node-sdk
@@ -72,7 +109,16 @@ npm install --save-dev @types/bcryptjs tsx
 
 ---
 
-### Step 3 — Create the migration script
+### Step 4 — Install dependencies
+
+```bash
+npm install bcryptjs @descope/node-sdk
+npm install --save-dev @types/bcryptjs tsx
+```
+
+---
+
+### Step 5 — Create the migration script
 
 Create `scripts/migrate-users.ts`. This script:
 1. Reads users from `lib/data.ts` (your "legacy database")
@@ -81,18 +127,7 @@ Create `scripts/migrate-users.ts`. This script:
 
 ---
 
-### Step 4 — Set up environment variables
-
-Ensure your `.env.local` has:
-
-```
-NEXT_PUBLIC_DESCOPE_PROJECT_ID=<your-project-id>
-DESCOPE_MANAGEMENT_KEY=<your-management-key>
-```
-
----
-
-### Step 5 — Run the migration
+### Step 6 — Run the migration
 
 ```bash
 npx tsx scripts/migrate-users.ts
@@ -113,7 +148,7 @@ Migration complete.
 
 ---
 
-### Step 6 — Verify in Descope Console
+### Step 7 — Verify in Descope Console
 
 Navigate to **Console → Users** and confirm both Priya and Alex appear with verified emails:
 
@@ -202,3 +237,6 @@ Click on a user to confirm `freshlyMigrated` is checked:
 | 3 | `uc1-03-custom-attributes-created.png` | Custom Attributes tab showing freshlyMigrated | ✅ Captured |
 | 4 | `uc1-04-users-imported.png` | Console → Users showing Priya & Alex imported | ✅ Captured |
 | 5 | `uc1-05-user-freshly-migrated.png` | Priya's profile with Freshly Migrated checked | ✅ Captured |
+| 6 | `uc1-06-project-id.png` | Settings → Project showing Project ID | ✅ Captured |
+| 7 | `uc1-07-generate-management-key.png` | Generate Management Key dialog | ✅ Captured |
+| 8 | `uc1-08-management-key-created.png` | Management key created confirmation | ✅ Captured |
