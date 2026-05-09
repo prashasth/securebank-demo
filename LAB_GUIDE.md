@@ -901,7 +901,25 @@ Log out and log back in as Priya — the modal should **not** appear this time b
 
 ## Use Case 4 — Passwordless Login
 
-> _Coming soon_
+### Why are we doing this?
+
+In Use Cases 2 and 3, we used **two separate flows**:
+- `sign-up-or-in-passwords` — handled login with passwords
+- `promote-passkeys` — handled passkey enrollment after first login
+
+This was a deliberate step-by-step approach. Right after the batch migration (UC1), users had passwords but no passkeys — you couldn't use a passkey-first login flow yet because nobody had enrolled one. So we let users log in with their existing password first, then nudged them toward passkey enrollment as a separate step.
+
+Now that enrollment is in place, we can consolidate. In this use case we **replace both flows with a single smarter flow** — `sign-up-or-in-passkeys` — that handles every user state in one place:
+
+| User state | Path taken |
+|-----------|-----------|
+| New user | Password registration → passkey enrollment prompt |
+| Returning user with passkey | One tap — no password needed |
+| Returning user without passkey | Password login → passkey enrollment prompt |
+
+> **Note:** Technically this single flow could have been built right after UC1 — the migration gave every user a password and no passkey, so the flow would have routed them correctly from day one. The two-flow journey was a training choice, not a technical requirement. UC4 is the production-ready pattern.
+
+> _Steps coming soon_
 
 ---
 
