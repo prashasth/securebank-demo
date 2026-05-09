@@ -601,7 +601,182 @@ Enter `priya@securebank.com`, click Continue, enter `Test@123`, and click Sign I
 
 ## Use Case 3 — Passkey Enrollment
 
-> _Coming soon_
+### What's happening here?
+
+In Use Case 1, every imported user was given a custom attribute `freshlyMigrated: true`. This flag is our signal that the user has just been migrated from the old system and has never set up a passkey.
+
+After a migrated user logs in with their password (Use Case 2), the dashboard detects this flag and shows a **passkey enrollment prompt** — an overlay powered by Descope's `promote-passkeys` flow. The user can enroll their device's biometric (fingerprint, Face ID) as a passkey, or skip it for now.
+
+Once enrolled, the flow automatically sets `freshlyMigrated: false` so the prompt never appears again. The passkey is registered against the user's Descope account and can be used for passwordless login in Use Case 4.
+
+After this use case:
+- Migrated users are prompted once to enroll a passkey after their first login
+- Enrollment is handled entirely by Descope — no custom WebAuthn code
+- `freshlyMigrated` is cleared by the flow on successful enrollment
+- The passkey is visible in the Descope Console under the user's profile
+
+---
+
+### API / SDK used
+
+**Descope Next.js SDK** — `@descope/nextjs-sdk`
+
+| Component / Hook | What it does |
+|-----------------|--------------|
+| `useUser()` | Returns the logged-in user's profile including `customAttributes` |
+| `<Descope flowId="promote-passkeys" />` | Renders the passkey enrollment flow inside the modal |
+| `onSuccess` | Called when the user successfully enrolls (or skips) — used to close the modal |
+
+The Flow used is **`promote-passkeys`** — a built-in Descope template that:
+1. Checks if the device supports WebAuthn
+2. Shows the enrollment prompt with "Add passkeys" and "Not now, maybe later" options
+3. If user enrolls → triggers the browser's native biometric dialog → registers the passkey
+4. If device doesn't support WebAuthn → shows a fallback screen
+5. On success → runs **Update User / Attributes** to set `freshlyMigrated: false`
+
+---
+
+### Step 1 — Create the promote-passkeys flow in Descope Console
+
+Go to **Console → Flows → Start from template**, then filter by **Passkeys**:
+
+> ![Flow Template Library showing Promote passkeys](screenshots/uc3-01-flow-template-library.png)
+
+Select **"Promote passkeys"**. This creates the flow with the full enrollment journey already wired up:
+
+> ![Promote passkeys flow diagram](screenshots/uc3-02-promote-passkeys-flow.png)
+
+---
+
+### Step 2 — Add the Update User / Attributes step
+
+After enrollment succeeds, we need to clear the `freshlyMigrated` flag so the modal never shows again. Click the **+** button to add a new action, search for **"user attr"** and select **Update User / Attributes**:
+
+> ![Add Update User Attributes action](screenshots/uc3-05-add-update-attributes-action.png)
+
+Configure it as follows — **Freshly Migrated**, type **Boolean**, value **false**:
+
+> ![Update User Attributes step configured with freshlyMigrated = false](screenshots/uc3-03-update-attributes-step.png)
+
+Connect **Update User / Passkeys → Successful authentication → Update User / Attributes → Success → DONE**. The final flow looks like this:
+
+> ![Completed promote-passkeys flow](screenshots/uc3-04-flow-complete.png)
+
+Click **Save**.
+
+---
+
+### Step 3 — Update `app/dashboard/page.tsx`
+
+Open `app/dashboard/page.tsx`. We need to:
+1. Check `descopeUser.customAttributes.freshlyMigrated` after login
+2. Show the `promote-passkeys` flow in a modal overlay if it is `true`
+3. Close the modal when the flow completes
+
+Here is the **key part of the original file** (for reference):
+
+```tsx
+// ❌ No passkey check — freshlyMigrated is never read
+"use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth";
+
+export default function DashboardPage() {
+  const { user, transactions } = useAuth();
+  // ❌ No awareness of freshlyMigrated — modal never shown
+}
+```
+
+**Replace the imports and component opening with:**
+
+```tsx
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth";
+import { formatCurrency } from "@/lib/data";
+import NavBar from "@/components/NavBar";
+import { TrendingUp, TrendingDown, ArrowRight, CreditCard, Activity } from "lucide-react";
+import { Descope } from "@descope/nextjs-sdk";
+import { useUser } from "@descope/nextjs-sdk/client";
+
+export default function DashboardPage() {
+  const { user, transactions } = useAuth();
+  const { user: descopeUser } = useUser();
+  const router = useRouter();
+  const [showPasskeyModal, setShowPasskeyModal] = useState(false);
+
+  useEffect(() => {
+    if (!user) router.replace("/");
+    if (user?.role === "admin") router.replace("/admin");
+  }, [user, router]);
+
+  useEffect(() => {
+    if (descopeUser?.customAttributes?.freshlyMigrated === true) {
+      setShowPasskeyModal(true);
+    }
+  }, [descopeUser]);
+```
+
+**Then add the modal overlay inside the return, before `<NavBar />`:**
+
+```tsx
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--off-white)" }}>
+      {showPasskeyModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#fff", borderRadius: "16px", padding: "40px", width: "100%", maxWidth: "440px", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: "700", color: "var(--navy)", marginBottom: "8px" }}>Set up faster login</h2>
+            <p style={{ color: "var(--text-muted)", fontSize: "14px", fontFamily: "Trebuchet MS, sans-serif", marginBottom: "24px" }}>
+              Use your fingerprint or Face ID to sign in — no password needed next time.
+            </p>
+            <Descope
+              flowId="promote-passkeys"
+              onSuccess={() => setShowPasskeyModal(false)}
+              onError={() => setShowPasskeyModal(false)}
+            />
+          </div>
+        </div>
+      )}
+      <NavBar />
+```
+
+**What changed and why:**
+
+| What | Why |
+|------|-----|
+| `import { useState }` added | We need local state to track whether the modal is open |
+| `import { Descope }` added | Renders the Descope flow inside the modal |
+| `import { useUser }` added | Gives us access to `descopeUser.customAttributes.freshlyMigrated` |
+| `useEffect` checking `freshlyMigrated` | Runs once when the user object loads — sets `showPasskeyModal: true` if the flag is set |
+| Modal overlay with `<Descope flowId="promote-passkeys" />` | Renders the enrollment flow on top of the dashboard — no page navigation needed |
+| `onSuccess` and `onError` both close the modal | Success → user enrolled (flow clears the flag); Error/skip → user dismissed, flag stays until next login |
+
+---
+
+### Step 4 — Test the enrollment
+
+Make sure your dev server is running:
+```bash
+npm run dev
+```
+
+Log in as Priya (`priya@securebank.com` / `Test@123`). The passkey enrollment modal should appear immediately on the dashboard:
+
+> ![Passkey enrollment modal on dashboard](screenshots/uc3-07-modal-on-dashboard.png)
+
+Click **Add passkeys (WebAuthn)**. Your browser will prompt for biometric confirmation. After enrolling, the modal closes and you land on the dashboard normally.
+
+To verify enrollment, go to **Console → Users** — Priya should now show a ✓ under **Passkeys**, while Alex (who hasn't enrolled) shows ✗:
+
+> ![Users list showing Priya with passkey enrolled](screenshots/uc3-06-passkey-enrolled.png)
+
+Log out and log back in as Priya — the modal should **not** appear this time because `freshlyMigrated` is now `false`.
+
+✅ **Use Case 3 complete.** Priya has enrolled a passkey. The `freshlyMigrated` flag was cleared by the Descope flow — no custom API code needed. She is now ready to use passwordless login in Use Case 4.
+
+---
 
 ---
 
