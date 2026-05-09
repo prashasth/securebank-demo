@@ -22,23 +22,58 @@ Before you begin:
 
 **Goal:** Migrate Priya and Alex from the legacy system into Descope using the Batch Create Users API, simulating a real password hash migration.
 
-### Step 1 — Install dependencies
+### Step 1 — Create the `freshlyMigrated` custom attribute in Descope Console
+
+Before importing users, you need to register the custom attribute in Descope so it can be stored against each user.
+
+1. Go to **Console → Users → Custom Attributes** tab
+   ([app.descope.com/users/attributes](https://app.descope.com/users/attributes))
+
+   > ![Custom Attributes tab — empty](screenshots/uc1-01-custom-attributes-empty.png)
+
+2. Click **+ Create Attribute** and fill in:
+   - **Display Name:** `Freshly Migrated`
+   - **Machine Name:** `freshlyMigrated` _(auto-fills)_
+   - **Type:** `Boolean`
+
+   > ![Create Attribute dialog filled in](screenshots/uc1-02-create-attribute-dialog.png)
+
+3. Click **Add**. You should now see the attribute listed:
+
+   > ![Custom Attributes tab showing freshlyMigrated](screenshots/uc1-03-custom-attributes-created.png)
+
+---
+
+### Step 2 — Install dependencies
 
 ```bash
 npm install bcryptjs @descope/node-sdk
 npm install --save-dev @types/bcryptjs tsx
 ```
 
-### Step 2 — Create the migration script
+---
 
-Create `scripts/migrate-users.ts` _(added in this step)_.
+### Step 3 — Create the migration script
 
-This script:
+Create `scripts/migrate-users.ts`. This script:
 1. Reads users from `lib/data.ts` (your "legacy database")
-2. Bcrypt-hashes their plaintext passwords
+2. Bcrypt-hashes their plaintext passwords (simulating a real DB export)
 3. POSTs to Descope's Batch Create Users API with `freshlyMigrated: true`
 
-### Step 3 — Run the migration
+---
+
+### Step 4 — Set up environment variables
+
+Ensure your `.env.local` has:
+
+```
+NEXT_PUBLIC_DESCOPE_PROJECT_ID=<your-project-id>
+DESCOPE_MANAGEMENT_KEY=<your-management-key>
+```
+
+---
+
+### Step 5 — Run the migration
 
 ```bash
 npx tsx scripts/migrate-users.ts
@@ -47,19 +82,29 @@ npx tsx scripts/migrate-users.ts
 Expected output:
 ```
 Migrating 2 users to Descope...
-✓ priya@securebank.com — imported
-✓ alex@securebank.com — imported
+  Hashed password for priya@securebank.com
+  Hashed password for alex@securebank.com
+
+Results:
+  ✓ priya@securebank.com — imported
+  ✓ alex@securebank.com — imported
+
 Migration complete.
 ```
 
-### Step 4 — Verify in Descope Console
+---
 
-> 📸 **SCREENSHOT NEEDED:** Descope Console → Users — showing Priya and Alex imported with `freshlyMigrated: true` custom attribute
+### Step 6 — Verify in Descope Console
 
-Navigate to **Console → Users** and confirm:
-- Both users appear
-- Email is verified
-- Custom attribute `freshlyMigrated` is set to `true`
+Navigate to **Console → Users** and confirm both Priya and Alex appear with verified emails:
+
+> ![Console Users list showing Priya and Alex imported](screenshots/uc1-04-users-imported.png)
+
+Click on a user to confirm `freshlyMigrated` is checked:
+
+> ![Priya Sharma profile with Freshly Migrated checked](screenshots/uc1-05-user-freshly-migrated.png)
+
+✅ **Use Case 1 complete.** Both users are in Descope with bcrypt-hashed passwords and `freshlyMigrated: true`.
 
 ---
 
@@ -131,6 +176,10 @@ Navigate to **Console → Users** and confirm:
 
 ## Screenshots Index
 
-| # | Description | Use Case | Status |
-|---|-------------|----------|--------|
-| 1 | Descope Console → Users showing imported Priya & Alex | UC1 | Pending |
+| # | File | Description | Status |
+|---|------|-------------|--------|
+| 1 | `uc1-01-custom-attributes-empty.png` | Custom Attributes tab — empty state | ✅ Captured |
+| 2 | `uc1-02-create-attribute-dialog.png` | Create Attribute dialog filled in | ✅ Captured |
+| 3 | `uc1-03-custom-attributes-created.png` | Custom Attributes tab showing freshlyMigrated | ✅ Captured |
+| 4 | `uc1-04-users-imported.png` | Console → Users showing Priya & Alex imported | ✅ Captured |
+| 5 | `uc1-05-user-freshly-migrated.png` | Priya's profile with Freshly Migrated checked | ✅ Captured |
