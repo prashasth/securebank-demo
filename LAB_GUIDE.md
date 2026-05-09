@@ -323,9 +323,44 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ### Step 5 — Update `lib/auth.tsx`
 
-Open `lib/auth.tsx`. This file currently has a fake `login()` function that checks hardcoded passwords. We are going to remove that entirely and replace it with Descope's session hooks.
+Open `lib/auth.tsx`. This is the file that currently manages who is logged in. It has a fake `login()` function that checks hardcoded passwords in `lib/data.ts` — not real authentication.
 
-**Replace the entire file with:**
+We are going to **delete everything in this file** and replace it with a new version that uses Descope's session hooks instead.
+
+> **How to do it:** Open the file in your editor, press `Cmd+A` (Mac) or `Ctrl+A` (Windows) to select all, then delete. Paste the code below.
+
+Here is what the **original file** looks like (for reference — do not keep this):
+```tsx
+"use client";
+import { createContext, useContext, useState, ReactNode } from "react";
+import { User, Transaction, USERS, TRANSACTIONS } from "./data";
+
+// ❌ This type includes a login() function — we are removing this
+type AuthContextType = {
+  user: User | null;
+  login: (email: string, password: string) => { success: boolean; error?: string };
+  logout: () => void;
+  // ...
+};
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+
+  // ❌ This checks passwords against hardcoded data — not real auth
+  const login = (email: string, password: string) => {
+    const found = users.find(
+      (u) => u.email === email && u.password === password
+    );
+    setUser(found);
+    return { success: !!found };
+  };
+
+  // ❌ This just clears a React variable — not a real logout
+  const logout = () => setUser(null);
+}
+```
+
+**Now replace the entire file with this new version:**
 ```tsx
 "use client";
 import { createContext, useContext, useState, ReactNode } from "react";
@@ -402,12 +437,17 @@ export function useAuth() {
 }
 ```
 
-**What changed and why:**
-- Removed the fake `login()` function — Descope's Flow handles login now
-- Added `useSession()` — tells us if the user has a valid Descope session (`isAuthenticated`)
-- Added `useUser()` — gives us the logged-in user's email from Descope
-- The `user` variable now finds the matching local record by email — so the dashboard still shows the right balance and transactions
-- `logout()` now calls Descope's logout instead of just clearing local state
+**What changed and why — line by line:**
+
+| What | Why |
+|------|-----|
+| `import { useUser, useSession, useDescope }` | These are Descope's hooks — they read the current session from the JWT token Descope set after login |
+| `AuthProvider` renamed to `AppProvider` | Avoids a naming clash with Descope's own `AuthProvider` that we added in `layout.tsx` |
+| `login()` function — **deleted entirely** | Descope's Flow handles login now — we don't need to check passwords ourselves |
+| `useSession()` → `isAuthenticated` | Tells us whether the user has a valid Descope JWT session — replaces the old `user !== null` check |
+| `useUser()` → `descopeUser.email` | Gives us the logged-in user's email from the Descope session token |
+| `user` derived from email lookup | We find the matching record in `lib/data.ts` by email — so the dashboard still shows the right balance and transactions |
+| `logout()` calls `descopeLogout()` | Properly clears the JWT session — the old version just cleared a React variable which wasn't a real logout |
 
 ---
 
