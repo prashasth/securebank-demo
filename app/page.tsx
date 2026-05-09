@@ -91,20 +91,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Demo credentials */}
-        <div style={{ marginTop: "36px", padding: "16px", background: "var(--off-white)", borderRadius: "8px", border: "1px solid #e8e0d0" }}>
-          <p style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-muted)", letterSpacing: "1.5px", marginBottom: "10px", fontFamily: "Trebuchet MS, sans-serif" }}>DEMO CREDENTIALS</p>
-          {[
-            { label: "Priya (India)", email: "priya@securebank.com", pass: "Test@123" },
-            { label: "Alex (Australia)", email: "alex@securebank.com", pass: "Test@123" },
-            { label: "Admin", email: "admin@securebank.com", pass: "Admin@123" },
-          ].map((c) => (
-            <button key={c.email} type="button" onClick={() => fillCreds(c.email, c.pass)}
-              style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", padding: "3px 0", fontSize: "12px", color: "var(--navy-light)", fontFamily: "Trebuchet MS, sans-serif" }}>
-              <span style={{ fontWeight: "700" }}>{c.label}:</span> {c.email}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Right — Banner */}
