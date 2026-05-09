@@ -259,17 +259,3 @@ Click on **Priya Sharma** to open her profile. Scroll down and confirm:
 
 > _Coming soon_
 
----
-
-## Screenshots Index
-
-| # | File | Description | Status |
-|---|------|-------------|--------|
-| 1 | `uc1-01-custom-attributes-empty.png` | Custom Attributes tab — empty state | ✅ Captured |
-| 2 | `uc1-02-create-attribute-dialog.png` | Create Attribute dialog filled in | ✅ Captured |
-| 3 | `uc1-03-custom-attributes-created.png` | Custom Attributes tab showing freshlyMigrated | ✅ Captured |
-| 4 | `uc1-04-users-imported.png` | Console → Users showing Priya & Alex imported | ✅ Captured |
-| 5 | `uc1-05-user-freshly-migrated.png` | Priya's profile with Freshly Migrated checked | ✅ Captured |
-| 6 | `uc1-06-project-id.png` | Settings → Project showing Project ID | ✅ Captured |
-| 7 | `uc1-07-generate-management-key.png` | Generate Management Key dialog | ✅ Captured |
-| 8 | `uc1-08-management-key-created.png` | Management key created confirmation | ✅ Captured |
