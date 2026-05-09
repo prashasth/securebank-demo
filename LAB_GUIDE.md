@@ -891,6 +891,8 @@ To verify enrollment, go to **Console → Users** — Priya should now show a �
 
 Log out and log back in as Priya — the modal should **not** appear this time because `freshlyMigrated` is now `false`.
 
+> **Heads up:** Even though Priya has a passkey enrolled, logging back in will still take her through the **password flow** — because the login page hasn't changed yet. The passkey is registered in Descope, but nothing is telling the login page to use it. That's exactly what Use Case 4 fixes.
+
 ✅ **Use Case 3 complete.** Priya has enrolled a passkey. The `freshlyMigrated` flag was cleared by the Descope flow — no custom API code needed. She is now ready to use passwordless login in Use Case 4.
 
 ---
