@@ -1224,7 +1224,8 @@ The updated flow JSON (with the OTP condition already built in) is at `flows/sig
 1. Go to **Console → Flows**
 2. Find `sign-up-or-in-bank` → click the three dots → **Delete**
 3. Click **Import** (top-right) → upload `flows/sign-up-or-in-bank_otp.json`
-4. Click **Save**
+4. In the import dialog, rename the flow to `sign-up-or-in-bank` (remove the `_otp` suffix) — this keeps the flow ID consistent with what the app expects
+5. Click **Save**
 
 The imported flow now has an **OTP Enabled** condition block after the password step:
 
