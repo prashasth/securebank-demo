@@ -1140,9 +1140,137 @@ To verify, go to **Console → Users** — your new account should appear as **A
 
 ---
 
-## Use Case 5 — First-Time 2FA
+## Use Case 5 — Password + OTP 2FA
 
-> _Coming soon_
+### Why are we doing this?
+
+Passkeys are the gold standard — but not every user will adopt them. Some users are on older devices, some are just resistant to change. In a real bank, you can't force everyone onto passkeys overnight.
+
+In UC1, we batch-migrated Priya and Alex — two users who were already in the system. But banks don't stop onboarding people. **Sharat is a user who joined later**, after the initial migration was done. He was added individually, not as part of the bulk import. In a real scenario, this could be a walk-in customer, a referral, or someone onboarded through a different channel — someone the bank wants to give a password-based login to, but with a second factor for security.
+
+Rather than nudging Sharat toward passkeys (like Alex), the bank has decided he'll use **password + OTP** — classic, recognisable 2FA that works on any device, any browser.
+
+The key concept here is **conditional branching in a Descope flow** — using a custom user attribute (`otpEnabled`) to route different users down different paths inside the same flow. Sharat gets `otpEnabled: true` set on his account, and the flow checks for this after password verification to decide whether to send an OTP or offer passkey enrollment.
+
+**Why OTP and not magic link?**
+Magic links work well as a *primary* authentication method — you skip the password entirely and just click a link in your email. But as a *second factor*, they're awkward: you've just typed your password, and now you have to open your email and click a link. OTP is faster — you type a 6-digit code without leaving the page. It's also what users expect when they hear "two-factor authentication."
+
+| User | Login path |
+|------|-----------|
+| Priya | Passkey → dashboard |
+| Alex | Password → passkey enrollment → dashboard |
+| Sharat | Password → OTP to email → account setup screen |
+
+---
+
+### API / SDK used
+
+No new SDK changes — all the work happens in:
+- `scripts/add-otp-user.ts` — a new one-off script to import Sharat individually (separate from the UC1 batch migration)
+- Descope Console — add a custom attribute and update the flow with a condition block
+
+> **Note:** Sharat is a brand new customer — he doesn't have an existing account in the system yet. After login he'll see an "account being set up" screen, which is intentional. The demo focuses on the authentication journey, not the account onboarding flow.
+
+---
+
+### Step 1 — Add `otpEnabled` custom attribute in Descope Console
+
+Before importing Sharat, you need to define the custom attribute the flow will use to identify him.
+
+In the Console:
+1. Go to **Users** in the left sidebar
+2. Click the **Custom Attributes** tab
+3. Click **+ Add Attribute**
+4. Name: `otpEnabled`, Type: **Boolean**
+5. Click **Save**
+
+> ![Custom Attributes tab showing otpEnabled Boolean attribute](screenshots/uc5-01-custom-attribute.png)
+
+---
+
+### Step 2 — Import Sharat into Descope
+
+A new script handles this — `scripts/add-otp-user.ts`. It imports Sharat with his hashed password and sets `otpEnabled: true` as a custom attribute.
+
+Run it from the project root:
+
+```bash
+npx tsx scripts/add-otp-user.ts
+```
+
+You should see:
+
+```
+Hashed password for sharatbaliga@gmail.com
+
+Results:
+  ✓ sharatbaliga@gmail.com — imported
+
+Done.
+```
+
+Check the Console — Sharat should appear in the Users list with `otpEnabled: true` under his custom attributes.
+
+> ![Descope Console showing Sharat imported with otpEnabled true](screenshots/uc5-02-sharat-imported.png)
+
+---
+
+### Step 3 — Add the OTP condition to the flow
+
+Open **`sign-up-or-in-bank`** in the Descope Console flow editor.
+
+Find the section of the flow that handles **password login** — after the password is verified, there is currently a path leading to the **Promote Biometrics** step (passkey enrollment). You need to intercept that path and add a condition.
+
+**Add a Condition block** between the password step and the Promote Biometrics step:
+
+1. Drag a **Condition** block onto the canvas
+2. Name it `OTP Enabled`
+3. Set the condition: Key = `unauthUser.customAttributes.otpEnabled`, Operator = **Is True**
+4. Connect the **if** branch → **Sign In / OTP / Email** → **Verify OTP** → **Verify Code / OTP / Email** → done
+5. Connect the **Else** branch → **Promote Biometrics** (existing passkey path)
+
+The flow should look like this:
+
+> ![Flow diagram showing OTP Enabled condition block routing Sharat to OTP and others to passkey path](screenshots/uc5-03-flow-condition.png)
+
+Click **Save**.
+
+**What changed and why:**
+
+| What | Why |
+|------|-----|
+| Condition block added after password step | Branches the flow based on `otpEnabled` attribute |
+| `if` branch → OTP | Sharat gets a 6-digit code emailed to him as second factor |
+| `Else` branch → Promote Biometrics | Priya and Alex continue on the passkey enrollment path unchanged |
+
+---
+
+### Step 4 — Test all three scenarios
+
+**Sharat (password + OTP):**
+1. Go to the login page
+2. Enter `sharatbaliga@gmail.com`
+3. Enter `Test@123`
+4. An OTP is sent to your email — enter the code
+
+> ![OTP verification screen](screenshots/uc5-04-otp-screen.png)
+
+5. Sharat sees the "account being set up" screen — authentication succeeded, he just doesn't have a pre-existing account in the system yet
+
+> ![Sharat's post-login screen showing account setup message](screenshots/uc5-05-sharat-dashboard.png)
+
+**Priya and Alex** — log in as usual to confirm their paths are unaffected.
+
+---
+
+### What you built
+
+| Concept | Where it shows up |
+|---------|------------------|
+| Custom user attributes | `otpEnabled: true` on Sharat, absent on others |
+| Conditional branching in flows | OTP Enabled condition block routes users by attribute |
+| Password + OTP (classic 2FA) | Sharat's full login journey |
+| Same flow, multiple paths | One flow handles 3 different user types cleanly |
 
 ---
 
