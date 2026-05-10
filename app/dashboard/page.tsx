@@ -1,29 +1,19 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { formatCurrency } from "@/lib/data";
 import NavBar from "@/components/NavBar";
 import { TrendingUp, TrendingDown, ArrowRight, CreditCard, Activity } from "lucide-react";
-import { Descope } from "@descope/nextjs-sdk";
-import { useUser } from "@descope/nextjs-sdk/client";
 
 export default function DashboardPage() {
   const { user, transactions } = useAuth();
-  const { user: descopeUser } = useUser();
   const router = useRouter();
-  const [showPasskeyModal, setShowPasskeyModal] = useState(false);
 
   useEffect(() => {
     if (!user) router.replace("/");
     if (user?.role === "admin") router.replace("/admin");
   }, [user, router]);
-
-  useEffect(() => {
-    if (descopeUser?.customAttributes?.freshlyMigrated === true) {
-      setShowPasskeyModal(true);
-    }
-  }, [descopeUser]);
 
   if (!user || user.role === "admin") return null;
 
@@ -33,21 +23,6 @@ export default function DashboardPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--off-white)" }}>
-      {showPasskeyModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ background: "#fff", borderRadius: "16px", padding: "40px", width: "100%", maxWidth: "440px", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
-            <h2 style={{ fontSize: "20px", fontWeight: "700", color: "var(--navy)", marginBottom: "8px" }}>Set up faster login</h2>
-            <p style={{ color: "var(--text-muted)", fontSize: "14px", fontFamily: "Trebuchet MS, sans-serif", marginBottom: "24px" }}>
-              Use your fingerprint or Face ID to sign in — no password needed next time.
-            </p>
-            <Descope
-              flowId="promote-passkeys"
-              onSuccess={() => setShowPasskeyModal(false)}
-              onError={() => setShowPasskeyModal(false)}
-            />
-          </div>
-        </div>
-      )}
       <NavBar />
       <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "36px 24px" }}>
         {/* Welcome */}

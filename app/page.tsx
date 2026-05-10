@@ -33,7 +33,7 @@ export default function LoginPage() {
 
         {/* Descope Flow */}
         <Descope
-          flowId="sign-up-or-in-passwords"
+          flowId="sign-up-or-in-bank"
           onSuccess={handleSuccess as never}
           onError={(e) => console.error("Auth error:", e)}
         />
