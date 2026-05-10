@@ -1297,6 +1297,8 @@ The end result: refresh works, direct URL access is blocked, and all session val
 
 Create a new file called `middleware.ts` in the **root of the project** (same level as `app/`, `lib/`, `package.json`).
 
+> **How to do it:** In your editor, right-click the root folder → New File → name it `middleware.ts`. Paste the code below.
+
 ```ts
 import { authMiddleware } from '@descope/nextjs-sdk/server'
 
@@ -1325,40 +1327,17 @@ export const config = {
 
 ### Step 2 — Update `app/dashboard/page.tsx`
 
-The dashboard previously had a client-side redirect (`if (!user) router.replace("/")`) that was fighting against Descope's session hydration on refresh. Replace the top of the file with the following:
+> **How to do it:** Open the file in your editor, press `Cmd+A` (Mac) or `Ctrl+A` (Windows) to select all, then delete. Paste the code below.
 
-**Before** ❌
 ```tsx
-// app/dashboard/page.tsx (top section only)
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth";
-import { useUser } from "@descope/nextjs-sdk/client";
-// ...
-
-export default function DashboardPage() {
-  const { user, transactions } = useAuth();
-  const { user: descopeUser } = useUser();
-  const router = useRouter();
-
-  const isAuthenticated = !!descopeUser?.email;
-
-  useEffect(() => {
-    if (!isAuthenticated) router.replace("/");
-    if (user?.role === "admin") router.replace("/admin");
-  }, [user, router, isAuthenticated]);
-
-  if (!isAuthenticated) return null;
-```
-
-**After** ✅
-```tsx
-// app/dashboard/page.tsx (top section only)
+"use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { useUser, useSession } from "@descope/nextjs-sdk/client";
-// ...
+import { formatCurrency } from "@/lib/data";
+import NavBar from "@/components/NavBar";
+import { TrendingUp, TrendingDown, ArrowRight, CreditCard, Activity, Shield } from "lucide-react";
 
 export default function DashboardPage() {
   const { user, transactions, logout } = useAuth();
@@ -1371,11 +1350,7 @@ export default function DashboardPage() {
   }, [user, router]);
 
   if (isSessionLoading) return null;
-```
 
-Also add the "account being set up" block immediately after `if (isSessionLoading) return null;` — this handles users who are authenticated via Descope but don't have a matching bank account (e.g. someone who signed up with a personal email):
-
-```tsx
   if (!user) {
     const name = descopeUser?.name || descopeUser?.email || "there";
     return (
@@ -1399,6 +1374,119 @@ Also add the "account being set up" block immediately after `if (isSessionLoadin
       </div>
     );
   }
+
+  if (user.role === "admin") return null;
+
+  const txns = transactions.filter((t) => t.userId === user.id).slice(0, 5);
+  const credits = txns.filter((t) => t.type === "credit").reduce((s, t) => s + t.amount, 0);
+  const debits = txns.filter((t) => t.type === "debit").reduce((s, t) => s + t.amount, 0);
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--off-white)" }}>
+      <NavBar />
+      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "36px 24px" }}>
+        {/* Welcome */}
+        <div style={{ marginBottom: "32px" }}>
+          <h1 style={{ fontSize: "26px", fontWeight: "700", color: "var(--navy)", marginBottom: "4px" }}>
+            Good morning, {user.name.split(" ")[0]} 👋
+          </h1>
+          <p style={{ color: "var(--text-muted)", fontFamily: "Trebuchet MS, sans-serif", fontSize: "14px" }}>
+            Here&apos;s your financial overview for today
+          </p>
+        </div>
+
+        {/* Cards row */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px", marginBottom: "32px" }}>
+          {/* Balance Card */}
+          <div style={{ background: "var(--navy)", borderRadius: "16px", padding: "28px", gridColumn: "span 1", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "120px", height: "120px", borderRadius: "50%", background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.15)" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+              <CreditCard size={16} color="var(--gold)" />
+              <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1.5px" }}>ACCOUNT BALANCE</span>
+            </div>
+            <div style={{ fontSize: "34px", fontWeight: "700", color: "#fff", marginBottom: "8px" }}>
+              {formatCurrency(user.balance, user.currency)}
+            </div>
+            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px", fontFamily: "Trebuchet MS, sans-serif" }}>
+              Account: {user.accountNumber}
+            </div>
+            <div style={{ marginTop: "20px", height: "2px", background: "rgba(201,168,76,0.3)", borderRadius: "1px" }}>
+              <div style={{ width: "65%", height: "100%", background: "var(--gold)", borderRadius: "1px" }} />
+            </div>
+          </div>
+
+          {/* Income */}
+          <div style={{ background: "#fff", borderRadius: "16px", padding: "24px", border: "1px solid #eee" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <p style={{ color: "var(--text-muted)", fontSize: "12px", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1px", marginBottom: "12px" }}>MONEY IN</p>
+                <p style={{ fontSize: "26px", fontWeight: "700", color: "var(--success)" }}>{formatCurrency(credits, user.currency)}</p>
+              </div>
+              <div style={{ width: "40px", height: "40px", background: "rgba(56,161,105,0.1)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <TrendingUp size={20} color="var(--success)" />
+              </div>
+            </div>
+          </div>
+
+          {/* Spending */}
+          <div style={{ background: "#fff", borderRadius: "16px", padding: "24px", border: "1px solid #eee" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <p style={{ color: "var(--text-muted)", fontSize: "12px", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1px", marginBottom: "12px" }}>MONEY OUT</p>
+                <p style={{ fontSize: "26px", fontWeight: "700", color: "var(--danger)" }}>{formatCurrency(debits, user.currency)}</p>
+              </div>
+              <div style={{ width: "40px", height: "40px", background: "rgba(229,62,62,0.1)", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <TrendingDown size={20} color="var(--danger)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Transactions */}
+        <div style={{ background: "#fff", borderRadius: "16px", border: "1px solid #eee", overflow: "hidden" }}>
+          <div style={{ padding: "24px 28px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f0f0f0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <Activity size={18} color="var(--navy)" />
+              <h2 style={{ fontSize: "16px", fontWeight: "700", color: "var(--navy)" }}>Recent Transactions</h2>
+            </div>
+            <button onClick={() => router.push("/transfer")}
+              style={{ display: "flex", alignItems: "center", gap: "6px", background: "none", border: "none", cursor: "pointer", color: "var(--gold)", fontSize: "13px", fontFamily: "Trebuchet MS, sans-serif", fontWeight: "600" }}>
+              New Transfer <ArrowRight size={14} />
+            </button>
+          </div>
+
+          {txns.length === 0 ? (
+            <div style={{ padding: "48px", textAlign: "center", color: "var(--text-muted)", fontFamily: "Trebuchet MS, sans-serif" }}>No transactions yet</div>
+          ) : (
+            txns.map((txn, i) => (
+              <div key={txn.id}
+                style={{ display: "flex", alignItems: "center", padding: "18px 28px", borderBottom: i < txns.length - 1 ? "1px solid #f5f5f5" : "none", transition: "background 0.15s" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#fafafa")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                <div style={{ width: "40px", height: "40px", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "16px", background: txn.type === "credit" ? "rgba(56,161,105,0.1)" : "rgba(229,62,62,0.08)" }}>
+                  {txn.type === "credit" ? <TrendingUp size={18} color="var(--success)" /> : <TrendingDown size={18} color="var(--danger)" />}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontWeight: "600", color: "var(--navy)", fontSize: "14px", marginBottom: "2px" }}>{txn.description}</p>
+                  <p style={{ color: "var(--text-muted)", fontSize: "12px", fontFamily: "Trebuchet MS, sans-serif" }}>{txn.date}</p>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <p style={{ fontWeight: "700", fontSize: "15px", color: txn.type === "credit" ? "var(--success)" : "var(--danger)" }}>
+                    {txn.type === "credit" ? "+" : "-"}{formatCurrency(txn.amount, user.currency)}
+                  </p>
+                  <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "12px", fontFamily: "Trebuchet MS, sans-serif", background: "rgba(56,161,105,0.1)", color: "var(--success)" }}>
+                    {txn.status}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 ```
 
 **What changed:**
@@ -1414,75 +1502,329 @@ Also add the "account being set up" block immediately after `if (isSessionLoadin
 
 ### Step 3 — Update `app/transfer/page.tsx`
 
-Same pattern — remove the redundant auth redirect and add the session loading guard.
+> **How to do it:** Open the file in your editor, press `Cmd+A` (Mac) or `Ctrl+A` (Windows) to select all, then delete. Paste the code below.
 
-**Before** ❌
 ```tsx
-  const { user, users, transfer } = useAuth();
-  const router = useRouter();
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth";
+import { useSession } from "@descope/nextjs-sdk/client";
+import { formatCurrency } from "@/lib/data";
+import NavBar from "@/components/NavBar";
+import { ArrowLeftRight, CheckCircle, AlertCircle } from "lucide-react";
 
-  useEffect(() => {
-    if (!user) router.replace("/");
-    if (user?.role === "admin") router.replace("/admin");
-  }, [user, router]);
-
-  if (!user || user.role === "admin") return null;
-```
-
-**After** ✅
-```tsx
+export default function TransferPage() {
   const { user, users, transfer } = useAuth();
   const { isSessionLoading } = useSession();
   const router = useRouter();
+  const [recipient, setRecipient] = useState("");
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     if (user?.role === "admin") router.replace("/admin");
   }, [user, router]);
 
   if (isSessionLoading || !user || user.role === "admin") return null;
+
+  const otherUsers = users.filter((u) => u.id !== user.id && u.role !== "admin");
+
+  const handleTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResult(null);
+    const amt = parseFloat(amount);
+    if (isNaN(amt) || amt <= 0) { setResult({ success: false, message: "Please enter a valid amount." }); return; }
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1200));
+    const outcome = transfer(recipient, amt, note);
+    setLoading(false);
+    if (outcome.success) {
+      setResult({ success: true, message: `Successfully transferred ${formatCurrency(amt, user.currency)} to ${users.find(u => u.id === recipient)?.name}.` });
+      setAmount("");
+      setNote("");
+      setRecipient("");
+    } else {
+      setResult({ success: false, message: outcome.error ?? "Transfer failed." });
+    }
+  };
+
+  const recipientUser = users.find((u) => u.id === recipient);
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--off-white)" }}>
+      <NavBar />
+      <div style={{ maxWidth: "640px", margin: "0 auto", padding: "40px 24px" }}>
+        <div style={{ marginBottom: "28px" }}>
+          <h1 style={{ fontSize: "26px", fontWeight: "700", color: "var(--navy)", marginBottom: "4px" }}>Money Transfer</h1>
+          <p style={{ color: "var(--text-muted)", fontFamily: "Trebuchet MS, sans-serif", fontSize: "14px" }}>Send money to another SecureBank account</p>
+        </div>
+
+        {/* Balance chip */}
+        <div style={{ background: "var(--navy)", borderRadius: "12px", padding: "20px 24px", marginBottom: "28px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1.5px", marginBottom: "4px" }}>AVAILABLE BALANCE</p>
+            <p style={{ color: "#fff", fontSize: "28px", fontWeight: "700" }}>{formatCurrency(user.balance, user.currency)}</p>
+          </div>
+          <div style={{ width: "48px", height: "48px", background: "rgba(201,168,76,0.15)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(201,168,76,0.3)" }}>
+            <ArrowLeftRight size={22} color="var(--gold)" />
+          </div>
+        </div>
+
+        {/* Form */}
+        <div style={{ background: "#fff", borderRadius: "16px", padding: "32px", border: "1px solid #eee" }}>
+          <form onSubmit={handleTransfer}>
+            {/* Recipient */}
+            <div style={{ marginBottom: "22px" }}>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: "700", color: "var(--navy)", marginBottom: "8px", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1px" }}>RECIPIENT</label>
+              <select value={recipient} onChange={(e) => setRecipient(e.target.value)} required
+                style={{ width: "100%", padding: "13px 16px", border: "1.5px solid #ddd", borderRadius: "8px", fontSize: "14px", fontFamily: "Trebuchet MS, sans-serif", color: recipient ? "var(--navy)" : "#aaa", outline: "none", background: "#fafafa", cursor: "pointer" }}
+                onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
+                onBlur={(e) => (e.target.style.borderColor = "#ddd")}
+              >
+                <option value="">Select a recipient...</option>
+                {otherUsers.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name} — {u.accountNumber}</option>
+                ))}
+              </select>
+              {recipientUser && (
+                <div style={{ marginTop: "10px", padding: "12px 14px", background: "var(--off-white)", borderRadius: "8px", display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--navy)", color: "var(--gold)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "700" }}>
+                    {recipientUser.avatar}
+                  </div>
+                  <div>
+                    <p style={{ fontWeight: "600", color: "var(--navy)", fontSize: "13px" }}>{recipientUser.name}</p>
+                    <p style={{ color: "var(--text-muted)", fontSize: "11px", fontFamily: "Trebuchet MS, sans-serif" }}>{recipientUser.country} · {recipientUser.accountNumber}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Amount */}
+            <div style={{ marginBottom: "22px" }}>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: "700", color: "var(--navy)", marginBottom: "8px", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1px" }}>AMOUNT ({user.currency})</label>
+              <div style={{ position: "relative" }}>
+                <span style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", fontSize: "16px", fontWeight: "700" }}>
+                  $
+                </span>
+                <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" min="1" required
+                  style={{ width: "100%", padding: "13px 16px 13px 40px", border: "1.5px solid #ddd", borderRadius: "8px", fontSize: "18px", fontFamily: "Trebuchet MS, sans-serif", color: "var(--navy)", outline: "none", background: "#fafafa", fontWeight: "700" }}
+                  onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
+                  onBlur={(e) => (e.target.style.borderColor = "#ddd")}
+                />
+              </div>
+              {/* Quick amounts */}
+              <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+                {[50, 100, 500, 1000].map((v) => (
+                  <button key={v} type="button" onClick={() => setAmount(String(v))}
+                    style={{ padding: "5px 12px", background: amount === String(v) ? "var(--navy)" : "var(--off-white)", color: amount === String(v) ? "var(--gold)" : "var(--navy)", border: "1px solid #ddd", borderRadius: "20px", cursor: "pointer", fontSize: "12px", fontFamily: "Trebuchet MS, sans-serif", fontWeight: "600" }}>
+                    ${v.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Note */}
+            <div style={{ marginBottom: "28px" }}>
+              <label style={{ display: "block", fontSize: "12px", fontWeight: "700", color: "var(--navy)", marginBottom: "8px", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1px" }}>NOTE (OPTIONAL)</label>
+              <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Rent payment, dinner split..."
+                style={{ width: "100%", padding: "13px 16px", border: "1.5px solid #ddd", borderRadius: "8px", fontSize: "14px", fontFamily: "Trebuchet MS, sans-serif", color: "var(--navy)", outline: "none", background: "#fafafa" }}
+                onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
+                onBlur={(e) => (e.target.style.borderColor = "#ddd")}
+              />
+            </div>
+
+            {result && (
+              <div style={{ padding: "14px 16px", borderRadius: "8px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px", background: result.success ? "rgba(56,161,105,0.08)" : "rgba(229,62,62,0.08)", border: `1px solid ${result.success ? "rgba(56,161,105,0.3)" : "rgba(229,62,62,0.3)"}` }}>
+                {result.success ? <CheckCircle size={18} color="var(--success)" /> : <AlertCircle size={18} color="var(--danger)" />}
+                <span style={{ fontSize: "13px", color: result.success ? "var(--success)" : "var(--danger)", fontFamily: "Trebuchet MS, sans-serif" }}>{result.message}</span>
+              </div>
+            )}
+
+            <button type="submit" disabled={loading}
+              style={{ width: "100%", padding: "15px", background: loading ? "#aaa" : "var(--navy)", color: "var(--gold)", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: "700", cursor: loading ? "not-allowed" : "pointer", letterSpacing: "1.5px", fontFamily: "Trebuchet MS, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <ArrowLeftRight size={15} />
+              {loading ? "PROCESSING..." : "SEND MONEY"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
 ```
 
-Also add the import at the top of the file:
-```tsx
-import { useSession } from "@descope/nextjs-sdk/client";
-```
+**What changed:**
+
+| Change | Why |
+|--------|-----|
+| Added `useSession` import | Gives us access to `isSessionLoading` |
+| Removed `if (!user) router.replace("/")` | Middleware handles this server-side |
+| Added `isSessionLoading` to the guard | Waits for session hydration before rendering |
 
 ---
 
 ### Step 4 — Update `app/admin/page.tsx`
 
-Same pattern again.
+> **How to do it:** Open the file in your editor, press `Cmd+A` (Mac) or `Ctrl+A` (Windows) to select all, then delete. Paste the code below.
 
-**Before** ❌
 ```tsx
-  const { user, users, transactions, disabledUsers, toggleUser } = useAuth();
-  const router = useRouter();
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth";
+import { useSession } from "@descope/nextjs-sdk/client";
+import { formatCurrency } from "@/lib/data";
+import NavBar from "@/components/NavBar";
+import { Users, Activity, Shield, CheckCircle, XCircle, Eye } from "lucide-react";
 
-  useEffect(() => {
-    if (!user) router.replace("/");
-    if (user && user.role !== "admin") router.replace("/dashboard");
-  }, [user, router]);
-
-  if (!user || user.role !== "admin") return null;
-```
-
-**After** ✅
-```tsx
+export default function AdminPage() {
   const { user, users, transactions, disabledUsers, toggleUser } = useAuth();
   const { isSessionLoading } = useSession();
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"users" | "transactions">("users");
 
   useEffect(() => {
     if (user && user.role !== "admin") router.replace("/dashboard");
   }, [user, router]);
 
   if (isSessionLoading || !user || user.role !== "admin") return null;
+
+  const customers = users.filter((u) => u.role === "customer");
+  const allTxns = transactions;
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--off-white)" }}>
+      <NavBar />
+      <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "36px 24px" }}>
+        <div style={{ marginBottom: "28px" }}>
+          <h1 style={{ fontSize: "26px", fontWeight: "700", color: "var(--navy)", marginBottom: "4px" }}>Admin Console</h1>
+          <p style={{ color: "var(--text-muted)", fontFamily: "Trebuchet MS, sans-serif", fontSize: "14px" }}>Manage users, view transactions, and monitor account activity</p>
+        </div>
+
+        {/* Stats */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px", marginBottom: "28px" }}>
+          {[
+            { label: "TOTAL CUSTOMERS", value: customers.length, icon: <Users size={20} color="var(--gold)" />, bg: "var(--navy)" },
+            { label: "ACTIVE ACCOUNTS", value: customers.length - disabledUsers.length, icon: <CheckCircle size={20} color="var(--success)" />, bg: "#fff" },
+            { label: "DISABLED ACCOUNTS", value: disabledUsers.length, icon: <XCircle size={20} color="var(--danger)" />, bg: "#fff" },
+          ].map((stat) => (
+            <div key={stat.label} style={{ background: stat.bg, borderRadius: "14px", padding: "22px", border: stat.bg === "#fff" ? "1px solid #eee" : "none" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <p style={{ fontSize: "11px", color: stat.bg === "var(--navy)" ? "rgba(255,255,255,0.5)" : "var(--text-muted)", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1.5px", marginBottom: "10px" }}>{stat.label}</p>
+                  <p style={{ fontSize: "32px", fontWeight: "700", color: stat.bg === "var(--navy)" ? "#fff" : "var(--navy)" }}>{stat.value}</p>
+                </div>
+                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: stat.bg === "var(--navy)" ? "rgba(201,168,76,0.15)" : "var(--off-white)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {stat.icon}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: "4px", marginBottom: "20px" }}>
+          {[{ key: "users", label: "User Management", icon: <Users size={14} /> }, { key: "transactions", label: "Audit Log", icon: <Activity size={14} /> }].map((tab) => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key as "users" | "transactions")}
+              style={{ display: "flex", alignItems: "center", gap: "7px", padding: "9px 20px", borderRadius: "8px", border: "1.5px solid", cursor: "pointer", fontSize: "13px", fontFamily: "Trebuchet MS, sans-serif", fontWeight: "600",
+                background: activeTab === tab.key ? "var(--navy)" : "#fff",
+                color: activeTab === tab.key ? "var(--gold)" : "var(--text-muted)",
+                borderColor: activeTab === tab.key ? "var(--navy)" : "#ddd",
+              }}>
+              {tab.icon}{tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* User Management Tab */}
+        {activeTab === "users" && (
+          <div style={{ background: "#fff", borderRadius: "16px", border: "1px solid #eee", overflow: "hidden" }}>
+            <div style={{ padding: "20px 28px", borderBottom: "1px solid #f0f0f0", display: "flex", alignItems: "center", gap: "10px" }}>
+              <Shield size={16} color="var(--navy)" />
+              <h2 style={{ fontSize: "15px", fontWeight: "700", color: "var(--navy)" }}>Customer Accounts</h2>
+            </div>
+            {customers.map((u, i) => {
+              const isDisabled = disabledUsers.includes(u.id);
+              const txnCount = transactions.filter((t) => t.userId === u.id).length;
+              return (
+                <div key={u.id} style={{ padding: "22px 28px", borderBottom: i < customers.length - 1 ? "1px solid #f5f5f5" : "none", display: "flex", alignItems: "center", gap: "16px", opacity: isDisabled ? 0.6 : 1 }}>
+                  <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: isDisabled ? "#ccc" : "var(--navy)", color: isDisabled ? "#999" : "var(--gold)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: "700", flexShrink: 0 }}>
+                    {u.avatar}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
+                      <p style={{ fontWeight: "700", color: "var(--navy)", fontSize: "15px" }}>{u.name}</p>
+                      <span style={{ padding: "2px 10px", borderRadius: "12px", fontSize: "11px", fontFamily: "Trebuchet MS, sans-serif", fontWeight: "700", background: isDisabled ? "rgba(229,62,62,0.1)" : "rgba(56,161,105,0.1)", color: isDisabled ? "var(--danger)" : "var(--success)" }}>
+                        {isDisabled ? "DISABLED" : "ACTIVE"}
+                      </span>
+                    </div>
+                    <p style={{ color: "var(--text-muted)", fontSize: "12px", fontFamily: "Trebuchet MS, sans-serif" }}>{u.email} · {u.accountNumber} · {u.country}</p>
+                  </div>
+                  <div style={{ textAlign: "right", marginRight: "24px" }}>
+                    <p style={{ fontWeight: "700", color: "var(--navy)", fontSize: "15px" }}>{formatCurrency(u.balance, u.currency)}</p>
+                    <p style={{ color: "var(--text-muted)", fontSize: "12px", fontFamily: "Trebuchet MS, sans-serif" }}>{txnCount} transactions</p>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button onClick={() => alert(`Viewing activity for ${u.name}`)}
+                      style={{ display: "flex", alignItems: "center", gap: "5px", padding: "7px 14px", background: "var(--off-white)", border: "1px solid #ddd", borderRadius: "7px", cursor: "pointer", fontSize: "12px", fontFamily: "Trebuchet MS, sans-serif", fontWeight: "600", color: "var(--navy)" }}>
+                      <Eye size={13} />VIEW
+                    </button>
+                    <button onClick={() => toggleUser(u.id)}
+                      style={{ display: "flex", alignItems: "center", gap: "5px", padding: "7px 14px", background: isDisabled ? "rgba(56,161,105,0.1)" : "rgba(229,62,62,0.08)", border: `1px solid ${isDisabled ? "rgba(56,161,105,0.3)" : "rgba(229,62,62,0.3)"}`, borderRadius: "7px", cursor: "pointer", fontSize: "12px", fontFamily: "Trebuchet MS, sans-serif", fontWeight: "700", color: isDisabled ? "var(--success)" : "var(--danger)" }}>
+                      {isDisabled ? <><CheckCircle size={13} />ENABLE</> : <><XCircle size={13} />DISABLE</>}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Audit Log Tab */}
+        {activeTab === "transactions" && (
+          <div style={{ background: "#fff", borderRadius: "16px", border: "1px solid #eee", overflow: "hidden" }}>
+            <div style={{ padding: "20px 28px", borderBottom: "1px solid #f0f0f0", display: "flex", alignItems: "center", gap: "10px" }}>
+              <Activity size={16} color="var(--navy)" />
+              <h2 style={{ fontSize: "15px", fontWeight: "700", color: "var(--navy)" }}>All Transactions</h2>
+            </div>
+            {allTxns.map((txn, i) => {
+              const txnUser = users.find((u) => u.id === txn.userId);
+              return (
+                <div key={txn.id} style={{ padding: "16px 28px", borderBottom: i < allTxns.length - 1 ? "1px solid #f5f5f5" : "none", display: "flex", alignItems: "center", gap: "16px" }}>
+                  <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: txn.type === "credit" ? "rgba(56,161,105,0.1)" : "rgba(229,62,62,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    {txn.type === "credit" ? <CheckCircle size={16} color="var(--success)" /> : <Activity size={16} color="var(--danger)" />}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontWeight: "600", color: "var(--navy)", fontSize: "14px" }}>{txn.description}</p>
+                    <p style={{ color: "var(--text-muted)", fontSize: "12px", fontFamily: "Trebuchet MS, sans-serif" }}>{txnUser?.name} · {txn.date}</p>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <p style={{ fontWeight: "700", fontSize: "14px", color: txn.type === "credit" ? "var(--success)" : "var(--danger)" }}>
+                      {txn.type === "credit" ? "+" : "-"}{formatCurrency(txn.amount, txnUser?.currency || "USD")}
+                    </p>
+                    <span style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "Trebuchet MS, sans-serif" }}>{txn.id}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 ```
 
-Also add the import at the top of the file:
-```tsx
-import { useSession } from "@descope/nextjs-sdk/client";
-```
+**What changed:**
+
+| Change | Why |
+|--------|-----|
+| Added `useSession` import | Gives us access to `isSessionLoading` |
+| Removed `if (!user) router.replace("/")` | Middleware handles this server-side |
+| Added `isSessionLoading` to the guard | Waits for session hydration before rendering |
 
 ---
 
