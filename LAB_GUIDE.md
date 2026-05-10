@@ -1108,11 +1108,33 @@ Alex can enroll or skip. Either way, he lands on the dashboard:
 
 Enter an email address that doesn't exist in Descope yet (e.g. a personal email you have access to). Click Continue. The flow detects the user doesn't exist and sends a magic link:
 
-> _No screenshot needed — the flow shows a "We've sent a verification link to [email]" screen_
+> ![Magic link sent confirmation screen](screenshots/uc4-07-magic-link-sent.png)
 
-Click the link in the email. The flow asks for a full name (required for new accounts), then checks if your device supports passkeys. If it does, it shows the "Configure Passkeys?" prompt — same screen Alex saw. Enroll or skip. You'll land on the "You're authenticated" confirmation screen (Descope's default for new-user signup, before your app has a profile for them).
+Check your inbox. You'll receive an email from Descope — the body references your Descope project name (not "SecureBank"), which is expected for a development project:
 
-> **Note:** New users created this way won't have a balance or transactions in SecureBank because `lib/data.ts` only has entries for Priya and Alex. That's expected — this scenario just demonstrates that the flow handles first-time signups cleanly without any extra code.
+> ![Magic link email with Click Here button](screenshots/uc4-08-magic-link-email.png)
+
+Click **Click Here**. The flow opens back in the browser and asks for a full name to complete signup:
+
+> ![Full name collection screen](screenshots/uc4-09-new-user-full-name.png)
+
+Enter your name and click **Submit**. The flow then checks if your device supports passkeys and shows the enrollment prompt:
+
+> ![Configure Passkeys prompt for new user](screenshots/uc4-10-new-user-configure-passkeys.png)
+
+If you click **Add passkeys**, your OS will show a biometric dialog (Touch ID on Mac, Windows Hello on PC):
+
+> ![Chrome biometric prompt for passkey enrollment](screenshots/uc4-10b-new-user-passkey-biometric-prompt.jpg)
+
+Enroll or click **Not now, maybe later** to skip. Either way, you land on the new-user welcome screen:
+
+> ![Welcome to SecureBank confirmation screen for new user](screenshots/uc4-11-new-user-welcome.png)
+
+To verify, go to **Console → Users** — your new account should appear as **Active** alongside Priya and Alex:
+
+> ![Console Users list showing all three users](screenshots/uc4-12-console-three-users.png)
+
+> **Note:** New users won't have a balance or transactions because `lib/data.ts` only has entries for Priya and Alex. That's expected — this scenario demonstrates the flow handles first-time signups cleanly without any extra code.
 
 ✅ **Use Case 4 complete.** One flow now handles every user state: passkey login for enrolled users, password + inline enrollment for returning users without passkeys, and magic link + name collection for brand-new signups. The dashboard is clean — no authentication logic. The `promote-passkeys` flow and the dashboard modal are gone.
 
