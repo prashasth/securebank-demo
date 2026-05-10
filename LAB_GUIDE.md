@@ -1217,13 +1217,13 @@ Check the Console — Sharat should appear in the Users list with `otpEnabled: t
 
 ### Step 3 — Update the flow in Descope Console
 
-The updated flow JSON (with the OTP condition already built in) is at `flows/sign-up-or-in-bank.json` in the repo.
+The updated flow JSON (with the OTP condition already built in) is at `flows/sign-up-or-in-bank_otp.json` in the repo.
 
 **Delete the old flow and import the new one:**
 
 1. Go to **Console → Flows**
 2. Find `sign-up-or-in-bank` → click the three dots → **Delete**
-3. Click **Import** (top-right) → upload `flows/sign-up-or-in-bank.json`
+3. Click **Import** (top-right) → upload `flows/sign-up-or-in-bank_otp.json`
 4. Click **Save**
 
 The imported flow now has an **OTP Enabled** condition block after the password step:
