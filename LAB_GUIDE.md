@@ -1215,33 +1215,33 @@ Check the Console — Sharat should appear in the Users list with `otpEnabled: t
 
 ---
 
-### Step 3 — Add the OTP condition to the flow
+### Step 3 — Update the flow in Descope Console
 
-Open **`sign-up-or-in-bank`** in the Descope Console flow editor.
+The updated flow JSON (with the OTP condition already built in) is at `flows/sign-up-or-in-bank.json` in the repo.
 
-Find the section of the flow that handles **password login** — after the password is verified, there is currently a path leading to the **Promote Biometrics** step (passkey enrollment). You need to intercept that path and add a condition.
+**Delete the old flow and import the new one:**
 
-**Add a Condition block** between the password step and the Promote Biometrics step:
+1. Go to **Console → Flows**
+2. Find `sign-up-or-in-bank` → click the three dots → **Delete**
+3. Click **Import** (top-right) → upload `flows/sign-up-or-in-bank.json`
+4. Click **Save**
 
-1. Drag a **Condition** block onto the canvas
-2. Name it `OTP Enabled`
-3. Set the condition: Key = `unauthUser.customAttributes.otpEnabled`, Operator = **Is True**
-4. Connect the **if** branch → **Sign In / OTP / Email** → **Verify OTP** → **Verify Code / OTP / Email** → done
-5. Connect the **Else** branch → **Promote Biometrics** (existing passkey path)
-
-The flow should look like this:
+The imported flow now has an **OTP Enabled** condition block after the password step:
 
 > ![Flow diagram showing OTP Enabled condition block routing Sharat to OTP and others to passkey path](screenshots/uc5-03-flow-condition.png)
 
-Click **Save**.
+Here's what the condition is checking — click the pencil on the **OTP Enabled** block to see it:
 
-**What changed and why:**
+> ![OTP Enabled condition detail showing unauthUser.customAttributes.otpEnabled Is True](screenshots/uc5-03b-flow-condition-detail.png)
 
-| What | Why |
-|------|-----|
-| Condition block added after password step | Branches the flow based on `otpEnabled` attribute |
-| `if` branch → OTP | Sharat gets a 6-digit code emailed to him as second factor |
-| `Else` branch → Promote Biometrics | Priya and Alex continue on the passkey enrollment path unchanged |
+**What the new condition does:**
+
+| Branch | Condition | Path |
+|--------|-----------|------|
+| `if` | `unauthUser.customAttributes.otpEnabled` Is True | Sign In / OTP / Email → Verify OTP → Verify Code → done |
+| `Else` | anything else (Priya, Alex) | Promote Biometrics → passkey enrollment |
+
+The key insight: at the point in the flow where this condition runs, the user has entered their password but isn't fully authenticated yet — so Descope uses `unauthUser` (not `user`) to access their attributes.
 
 ---
 
