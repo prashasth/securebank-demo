@@ -1839,6 +1839,82 @@ export default function AdminPage() {
 
 ---
 
+### Demo: Inspecting the Session Token
+
+This walkthrough shows trainees what Descope actually sets in the browser after login — the real JWTs behind the session.
+
+**Step 1 — Log in as Priya and open DevTools**
+
+Log in as Priya. Open DevTools (`Cmd+Option+I` on Mac), go to **Application** → **Cookies** → `http://localhost:3000`.
+
+You will see two cookies set by Descope:
+
+| Cookie | Domain | What it is |
+|--------|--------|------------|
+| `DS` | localhost | Session token — short-lived JWT, validated on every request |
+| `DSR` | localhost | Refresh token — long-lived JWT, used to silently renew `DS` |
+
+![DevTools cookies panel showing DS and DSR](screenshots/uc6-01-cookies-devtools.png)
+
+> There will also be `DS` and `DSR` cookies scoped to `.descope.com` — ignore those. The ones on `localhost` are what your middleware reads.
+
+---
+
+**Step 2 — Decode the session token (DS)**
+
+Click the `DS` (localhost) row. Copy the full value from the Cookie Value panel. Paste it into **jwt.io**.
+
+In the Decoded Payload you will see:
+
+| Claim | Value | What it means |
+|-------|-------|---------------|
+| `amr` | `["webauthn"]` | Authentication method — passkey. Password login would show `"pwd"` |
+| `sub` | `U3DTTXw...` | Priya's unique Descope user ID |
+| `iss` | `P2qjj6Si...` | Your Descope project ID |
+| `iat` | Unix timestamp | When this token was issued |
+| `exp` | Unix timestamp | When this token expires (10 minutes after `iat` by default) |
+| `rexp` | ISO date | When the refresh token expires — when Priya would need to log in again |
+| `drn` | `"DS"` | Confirms this is the session token |
+
+![DS token decoded in jwt.io](screenshots/uc6-02-ds-jwt.png)
+
+---
+
+**Step 3 — Decode the refresh token (DSR)**
+
+Go back to DevTools, click the `DSR` (localhost) row. Copy and paste into jwt.io.
+
+Key differences from DS:
+
+| Claim | Value | What it means |
+|-------|-------|---------------|
+| `drn` | `"DSR"` | Confirms this is the refresh token |
+| `exp` | Much larger timestamp | Lives for 4 weeks by default |
+| `dv` | `1` | Device version — used for refresh token rotation |
+
+![DSR token decoded in jwt.io](screenshots/uc6-03-dsr-jwt.png)
+
+**The two-token model in plain English:** `DS` is validated on every request to `/dashboard`, `/transfer`, and `/admin` — server-side, before the page renders. When `DS` expires after 10 minutes, Descope uses `DSR` to silently issue a new one. Priya never sees this happen. When she logs out, both cookies are cleared.
+
+**Step 4 — Session Management settings in the Console**
+
+In the Descope Console, go to **Settings** → **Project** → **Session Management** to see and adjust all token timeouts.
+
+![Session Management settings in Descope Console](screenshots/uc6-04-session-management-console.png)
+
+| Setting | Default | What it controls |
+|---------|---------|-----------------|
+| Refresh Token Timeout | 4 weeks | How long `DSR` lasts — when this expires, the user must log in again |
+| Session Token Timeout | 10 minutes | How long `DS` lasts — silently renewed by `DSR` on each refresh |
+| Step Up Token Timeout | 10 minutes | How long a step-up verification (UC7) stays valid |
+| Trusted Device Token Timeout | 52 weeks | How long a trusted device is remembered |
+| Enable refresh token rotation | Off | When on, a new `DSR` is issued every time `DS` is renewed — more secure, but invalidates all other sessions |
+| Enable session inactivity detection | Off | When on, idle sessions are automatically closed after a configurable period |
+
+For production, you would tighten the Session Token Timeout and enable refresh token rotation. For this demo, the defaults are fine.
+
+---
+
 ## Use Case 7 — Step-Up Auth
 
 > _Coming soon_
