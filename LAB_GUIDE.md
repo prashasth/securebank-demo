@@ -1854,7 +1854,7 @@ You will see two cookies set by Descope:
 | `DS` | localhost | Session token — short-lived JWT, validated on every request |
 | `DSR` | localhost | Refresh token — long-lived JWT, used to silently renew `DS` |
 
-![DevTools cookies panel showing DS and DSR](screenshots/uc6-01-cookies-devtools.png)
+![DevTools cookies panel showing DS and DSR](screenshots/uc6-01-cookies-devtools.jpg)
 
 > There will also be `DS` and `DSR` cookies scoped to `.descope.com` — ignore those. The ones on `localhost` are what your middleware reads.
 
@@ -1876,7 +1876,7 @@ In the Decoded Payload you will see:
 | `rexp` | ISO date | When the refresh token expires — when Priya would need to log in again |
 | `drn` | `"DS"` | Confirms this is the session token |
 
-![DS token decoded in jwt.io](screenshots/uc6-02-ds-jwt.png)
+![DS token decoded in jwt.io](screenshots/uc6-02-ds-jwt.jpg)
 
 ---
 
@@ -1892,7 +1892,7 @@ Key differences from DS:
 | `exp` | Much larger timestamp | Lives for 4 weeks by default |
 | `dv` | `1` | Device version — used for refresh token rotation |
 
-![DSR token decoded in jwt.io](screenshots/uc6-03-dsr-jwt.png)
+![DSR token decoded in jwt.io](screenshots/uc6-03-dsr-jwt.jpg)
 
 **The two-token model in plain English:** `DS` is validated on every request to `/dashboard`, `/transfer`, and `/admin` — server-side, before the page renders. When `DS` expires after 10 minutes, Descope uses `DSR` to silently issue a new one. Priya never sees this happen. When she logs out, both cookies are cleared.
 
