@@ -2,21 +2,22 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { useSession } from "@descope/nextjs-sdk/client";
 import { formatCurrency } from "@/lib/data";
 import NavBar from "@/components/NavBar";
 import { Users, Activity, Shield, CheckCircle, XCircle, Eye } from "lucide-react";
 
 export default function AdminPage() {
   const { user, users, transactions, disabledUsers, toggleUser } = useAuth();
+  const { isSessionLoading } = useSession();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"users" | "transactions">("users");
 
   useEffect(() => {
-    if (!user) router.replace("/");
     if (user && user.role !== "admin") router.replace("/dashboard");
   }, [user, router]);
 
-  if (!user || user.role !== "admin") return null;
+  if (isSessionLoading || !user || user.role !== "admin") return null;
 
   const customers = users.filter((u) => u.role === "customer");
   const allTxns = transactions;

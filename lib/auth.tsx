@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 import { useUser, useSession, useDescope } from "@descope/nextjs-sdk/client";
 import { User, Transaction, USERS, TRANSACTIONS } from "./data";
 

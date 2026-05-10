@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { useUser } from "@descope/nextjs-sdk/client";
+import { useUser, useSession } from "@descope/nextjs-sdk/client";
 import { formatCurrency } from "@/lib/data";
 import NavBar from "@/components/NavBar";
 import { TrendingUp, TrendingDown, ArrowRight, CreditCard, Activity, Shield } from "lucide-react";
@@ -10,16 +10,14 @@ import { TrendingUp, TrendingDown, ArrowRight, CreditCard, Activity, Shield } fr
 export default function DashboardPage() {
   const { user, transactions, logout } = useAuth();
   const { user: descopeUser } = useUser();
+  const { isSessionLoading } = useSession();
   const router = useRouter();
 
-  const isAuthenticated = !!descopeUser?.email;
-
   useEffect(() => {
-    if (!isAuthenticated) router.replace("/");
     if (user?.role === "admin") router.replace("/admin");
-  }, [user, router, isAuthenticated]);
+  }, [user, router]);
 
-  if (!isAuthenticated) return null;
+  if (isSessionLoading) return null;
 
   if (!user) {
     const name = descopeUser?.name || descopeUser?.email || "there";

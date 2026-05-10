@@ -2,12 +2,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { useSession } from "@descope/nextjs-sdk/client";
 import { formatCurrency } from "@/lib/data";
 import NavBar from "@/components/NavBar";
 import { ArrowLeftRight, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function TransferPage() {
   const { user, users, transfer } = useAuth();
+  const { isSessionLoading } = useSession();
   const router = useRouter();
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
@@ -16,11 +18,10 @@ export default function TransferPage() {
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
 
   useEffect(() => {
-    if (!user) router.replace("/");
     if (user?.role === "admin") router.replace("/admin");
   }, [user, router]);
 
-  if (!user || user.role === "admin") return null;
+  if (isSessionLoading || !user || user.role === "admin") return null;
 
   const otherUsers = users.filter((u) => u.id !== user.id && u.role !== "admin");
 
