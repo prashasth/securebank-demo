@@ -1277,7 +1277,223 @@ The key insight: at the point in the flow where this condition runs, the user ha
 
 ## Use Case 6 — Session Management
 
-> _Coming soon_
+### Why are we doing this?
+
+Up to this point, the app has a serious problem: **refreshing any page sends you back to the login screen**, and **anyone who knows the URL can navigate directly to `/dashboard`, `/transfer`, or `/admin` without logging in**.
+
+The first problem exists because session state was only held in React memory — there was nothing persisting the session across page loads. The second problem exists because route protection was done entirely client-side with `if (!user) router.replace("/")` — which only runs after the page has already loaded in the browser. A determined user could bypass it trivially.
+
+The fix has two parts:
+
+1. **Server-side route protection via middleware** — Descope's `authMiddleware` runs before any page renders. It reads the JWT from the session cookie, validates it against Descope's public keys, and redirects unauthenticated users to the login page. This happens on the server, not in the browser — it cannot be bypassed.
+
+2. **Session loading guard on protected pages** — When a logged-in user refreshes a protected page, there's a brief moment where the page has loaded but Descope hasn't yet hydrated the session from the cookie. Without a loading guard, the old client-side redirect would fire immediately during this window and kick the user out — even though their session is perfectly valid. `isSessionLoading` from `useSession()` tells us to wait before making any routing decisions.
+
+The end result: refresh works, direct URL access is blocked, and all session validation goes through Descope.
+
+---
+
+### Step 1 — Create `middleware.ts`
+
+Create a new file called `middleware.ts` in the **root of the project** (same level as `app/`, `lib/`, `package.json`).
+
+```ts
+import { authMiddleware } from '@descope/nextjs-sdk/server'
+
+export default authMiddleware({
+  redirectUrl: '/',
+  privateRoutes: ['/dashboard', '/transfer', '/admin'],
+})
+
+export const config = {
+  matcher: ['/dashboard', '/transfer', '/admin'],
+}
+```
+
+**What changed:**
+
+| Part | What it does |
+|------|-------------|
+| `authMiddleware` | Descope's built-in Next.js middleware — reads and validates the session JWT on every request |
+| `redirectUrl: '/'` | Where to send unauthenticated users — the login page |
+| `privateRoutes` | The routes to protect — anything not on this list is public |
+| `config.matcher` | Tells Next.js which routes to run this middleware on |
+
+**To test:** Log out, then try navigating directly to `http://localhost:3000/dashboard`. You should be redirected to the login page immediately.
+
+---
+
+### Step 2 — Update `app/dashboard/page.tsx`
+
+The dashboard previously had a client-side redirect (`if (!user) router.replace("/")`) that was fighting against Descope's session hydration on refresh. Replace the top of the file with the following:
+
+**Before** ❌
+```tsx
+// app/dashboard/page.tsx (top section only)
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth";
+import { useUser } from "@descope/nextjs-sdk/client";
+// ...
+
+export default function DashboardPage() {
+  const { user, transactions } = useAuth();
+  const { user: descopeUser } = useUser();
+  const router = useRouter();
+
+  const isAuthenticated = !!descopeUser?.email;
+
+  useEffect(() => {
+    if (!isAuthenticated) router.replace("/");
+    if (user?.role === "admin") router.replace("/admin");
+  }, [user, router, isAuthenticated]);
+
+  if (!isAuthenticated) return null;
+```
+
+**After** ✅
+```tsx
+// app/dashboard/page.tsx (top section only)
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth";
+import { useUser, useSession } from "@descope/nextjs-sdk/client";
+// ...
+
+export default function DashboardPage() {
+  const { user, transactions, logout } = useAuth();
+  const { user: descopeUser } = useUser();
+  const { isSessionLoading } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user?.role === "admin") router.replace("/admin");
+  }, [user, router]);
+
+  if (isSessionLoading) return null;
+```
+
+Also add the "account being set up" block immediately after `if (isSessionLoading) return null;` — this handles users who are authenticated via Descope but don't have a matching bank account (e.g. someone who signed up with a personal email):
+
+```tsx
+  if (!user) {
+    const name = descopeUser?.name || descopeUser?.email || "there";
+    return (
+      <div style={{ minHeight: "100vh", background: "var(--off-white)" }}>
+        <NavBar />
+        <div style={{ maxWidth: "600px", margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
+          <div style={{ width: "64px", height: "64px", background: "var(--navy)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
+            <Shield size={32} color="var(--gold)" />
+          </div>
+          <h1 style={{ fontSize: "28px", fontWeight: "700", color: "var(--navy)", marginBottom: "12px" }}>
+            Welcome to <span style={{ color: "var(--gold)" }}>SecureBank</span>, {name}!
+          </h1>
+          <p style={{ color: "var(--text-muted)", fontSize: "15px", fontFamily: "Trebuchet MS, sans-serif", lineHeight: "1.7", marginBottom: "32px" }}>
+            Your identity has been verified successfully. Your bank account is being set up and will be ready shortly. Please contact your branch for further assistance.
+          </p>
+          <button onClick={logout}
+            style={{ padding: "12px 28px", background: "var(--navy)", color: "var(--gold)", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: "700", cursor: "pointer", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1px" }}>
+            SIGN OUT
+          </button>
+        </div>
+      </div>
+    );
+  }
+```
+
+**What changed:**
+
+| Change | Why |
+|--------|-----|
+| Added `useSession` import | Gives us access to `isSessionLoading` |
+| Removed `if (!isAuthenticated) router.replace("/")` | Middleware handles this server-side — the client-side redirect was redundant and causing refresh issues |
+| Added `if (isSessionLoading) return null` | Waits for Descope to hydrate the session before rendering anything — prevents the flash redirect on refresh |
+| Added "account being set up" block | Gracefully handles authenticated Descope users who don't have a matching bank account |
+
+---
+
+### Step 3 — Update `app/transfer/page.tsx`
+
+Same pattern — remove the redundant auth redirect and add the session loading guard.
+
+**Before** ❌
+```tsx
+  const { user, users, transfer } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) router.replace("/");
+    if (user?.role === "admin") router.replace("/admin");
+  }, [user, router]);
+
+  if (!user || user.role === "admin") return null;
+```
+
+**After** ✅
+```tsx
+  const { user, users, transfer } = useAuth();
+  const { isSessionLoading } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user?.role === "admin") router.replace("/admin");
+  }, [user, router]);
+
+  if (isSessionLoading || !user || user.role === "admin") return null;
+```
+
+Also add the import at the top of the file:
+```tsx
+import { useSession } from "@descope/nextjs-sdk/client";
+```
+
+---
+
+### Step 4 — Update `app/admin/page.tsx`
+
+Same pattern again.
+
+**Before** ❌
+```tsx
+  const { user, users, transactions, disabledUsers, toggleUser } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) router.replace("/");
+    if (user && user.role !== "admin") router.replace("/dashboard");
+  }, [user, router]);
+
+  if (!user || user.role !== "admin") return null;
+```
+
+**After** ✅
+```tsx
+  const { user, users, transactions, disabledUsers, toggleUser } = useAuth();
+  const { isSessionLoading } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user && user.role !== "admin") router.replace("/dashboard");
+  }, [user, router]);
+
+  if (isSessionLoading || !user || user.role !== "admin") return null;
+```
+
+Also add the import at the top of the file:
+```tsx
+import { useSession } from "@descope/nextjs-sdk/client";
+```
+
+---
+
+### What to verify
+
+| Test | Expected result |
+|------|----------------|
+| Log out → navigate to `/dashboard` directly | Redirected to login |
+| Log in → refresh the page | Stays on dashboard |
+| Log in → navigate to `/transfer` → refresh | Stays on transfer page |
+| Sign up with a personal email not in the system | Sees "account being set up" screen |
 
 ---
 
