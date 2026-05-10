@@ -1140,7 +1140,7 @@ To verify, go to **Console → Users** — your new account should appear as **A
 
 ---
 
-## Use Case 5 — Password + OTP 2FA
+## Use Case 5 — Password + OTP (2FA for Legacy Users)
 
 ### Why are we doing this?
 
