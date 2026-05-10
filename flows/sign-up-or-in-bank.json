@@ -1,0 +1,3241 @@
+{
+  "contents": {
+    "startTask": "0",
+    "tasks": {
+      "0": {
+        "allInputKeys": [
+          "email"
+        ],
+        "id": "0",
+        "inputKeys": [
+          "email"
+        ],
+        "inputsMetadata": [
+          {
+            "displayName": "Email Input",
+            "key": "email"
+          }
+        ],
+        "name": "Welcome Screen",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "LIpGvjBzAc",
+              "taskId": "21"
+            },
+            {
+              "interactionId": "mbeJnFYaVs",
+              "taskId": "14"
+            }
+          ]
+        },
+        "screenId": "SC3DUYYJiQUbnpy1kl4yCSFeLotRx",
+        "type": "screen",
+        "view": {
+          "x": 276,
+          "y": 192
+        }
+      },
+      "4": {
+        "conditions": [
+          {
+            "atomicConditions": [
+              {
+                "operator": "is-true",
+                "predicate": {
+                  "type": "inline",
+                  "value": ""
+                },
+                "target": {
+                  "type": "context",
+                  "value": "authInfo.firstSeen"
+                }
+              }
+            ],
+            "interactionId": "3q2o3tqxrva",
+            "name": "New user"
+          },
+          {
+            "interactionId": "ELSE",
+            "name": "Existing user"
+          }
+        ],
+        "id": "4",
+        "name": "Is new user?",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "3q2o3tqxrva",
+              "taskId": "5"
+            },
+            {
+              "interactionId": "ELSE",
+              "taskId": "7"
+            }
+          ]
+        },
+        "type": "condition",
+        "view": {
+          "x": 3180,
+          "y": 108
+        }
+      },
+      "5": {
+        "allInputKeys": [
+          "fullName"
+        ],
+        "id": "5",
+        "inputKeys": [
+          "fullName"
+        ],
+        "inputsMetadata": [
+          {
+            "displayName": "Full Name Input",
+            "key": "fullName"
+          }
+        ],
+        "name": "User Information",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "Hz3zq9Pbd8",
+              "taskId": "6"
+            }
+          ]
+        },
+        "screenId": "SC3DUYYLnpFF46q2qJsBV1I0W5IPm",
+        "type": "screen",
+        "view": {
+          "x": 3660,
+          "y": 264
+        }
+      },
+      "6": {
+        "action": "update-user-properties",
+        "id": "6",
+        "name": "Update User / Properties",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "20"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 4140,
+          "y": 288
+        }
+      },
+      "7": {
+        "allInputKeys": [],
+        "id": "7",
+        "inputsMetadata": [],
+        "name": "Promote Biometrics",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "Tta9SiPHJk",
+              "taskId": "9"
+            },
+            {
+              "interactionId": "UZgoCc-hSj",
+              "taskId": "8"
+            }
+          ]
+        },
+        "screenId": "SC3DUYYIvXJ7MPCNhOW515W4yaZkf",
+        "type": "screen",
+        "view": {
+          "x": 5112,
+          "y": 264
+        }
+      },
+      "8": {
+        "action": "webauthn-update-user-start",
+        "arguments": {
+          "finishStepId": {
+            "type": "inline",
+            "value": "8.end"
+          },
+          "restrictPasskeyTypes": {
+            "type": "inline",
+            "value": ""
+          },
+          "userVerificationDiscouraged": {
+            "type": "inline",
+            "value": ""
+          }
+        },
+        "id": "8",
+        "name": "Update User/ Passkeys (WebAuthn)",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "8.end"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 5592,
+          "y": 252
+        }
+      },
+      "9": {
+        "action": "logged-in",
+        "id": "9",
+        "name": "End",
+        "next": {},
+        "type": "automated",
+        "view": {
+          "x": 6084,
+          "y": 132
+        }
+      },
+      "11": {
+        "action": "sign-up-or-in-magic-link-email",
+        "arguments": {
+          "extraTemplateVals": {
+            "type": "inline",
+            "value": null
+          },
+          "providerId": {
+            "type": "inline",
+            "value": ""
+          },
+          "skipVerify": {
+            "type": "inline",
+            "value": false
+          },
+          "templateId": {
+            "type": "inline",
+            "value": ""
+          },
+          "uri": {
+            "type": "inline",
+            "value": ""
+          },
+          "verifyStepId": {
+            "type": "inline",
+            "value": "11.end"
+          }
+        },
+        "errorHandlingV2": {
+          "ActionErrorRateLimitExceeded": {
+            "errorHandlingType": "automatic"
+          },
+          "ActionErrorTenantDisabled": {
+            "errorHandlingType": "automatic"
+          },
+          "ActionErrorTenantRequiresSSO": {
+            "errorHandlingType": "automatic"
+          },
+          "MagicLinkSignUpOrInFailed": {
+            "errorHandlingType": "automatic"
+          },
+          "MagicLinkUpdateUserConflict": {
+            "errorHandlingType": "automatic"
+          },
+          "MagicLinkVerifyFailed": {
+            "errorHandlingType": "automatic"
+          }
+        },
+        "id": "11",
+        "name": "Sign Up or In / Magic Link / Email",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "12"
+            },
+            {
+              "interactionId": "success",
+              "taskId": "11.end"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 2208,
+          "y": 156
+        }
+      },
+      "12": {
+        "allInputKeys": [],
+        "contextKeys": [
+          "sentTo.maskedEmail"
+        ],
+        "id": "12",
+        "inputsMetadata": [],
+        "name": "Magic Link Sent",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "EbW8KMdjAx",
+              "taskId": "0"
+            },
+            {
+              "interactionId": "polling",
+              "taskId": "9"
+            },
+            {
+              "interactionId": "resend",
+              "taskId": "11"
+            }
+          ]
+        },
+        "screenId": "SC3DUYYKtt7tz1ifkBlRlDzzCuiDe",
+        "type": "screen",
+        "view": {
+          "x": 2688,
+          "y": 108
+        }
+      },
+      "14": {
+        "action": "webauthn-sign-up-or-in-start",
+        "arguments": {
+          "finishStepId": {
+            "type": "inline",
+            "value": "14.end"
+          },
+          "restrictPasskeyTypes": {
+            "type": "inline",
+            "value": ""
+          },
+          "userVerificationDiscouraged": {
+            "type": "inline",
+            "value": ""
+          }
+        },
+        "id": "14",
+        "name": "Sign Up or In/ Passkeys (WebAuthn)",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "14.end"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 756,
+          "y": 492
+        }
+      },
+      "15": {
+        "conditions": [
+          {
+            "atomicConditions": [
+              {
+                "operator": "is-true",
+                "predicate": {
+                  "type": "inline",
+                  "value": ""
+                },
+                "target": {
+                  "type": "context",
+                  "value": "authInfo.user.verifiedEmail"
+                }
+              }
+            ],
+            "interactionId": "wocnv78s1f",
+            "name": "Email verified"
+          },
+          {
+            "interactionId": "ELSE",
+            "name": "Email not verified"
+          }
+        ],
+        "id": "15",
+        "name": "Is email verified?",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "wocnv78s1f",
+              "taskId": "41"
+            },
+            {
+              "interactionId": "ELSE",
+              "taskId": "16"
+            }
+          ]
+        },
+        "type": "condition",
+        "view": {
+          "x": 2208,
+          "y": 432
+        }
+      },
+      "16": {
+        "action": "update-user-magic-link-email",
+        "arguments": {
+          "addToLoginIDs": {
+            "type": "inline",
+            "value": ""
+          },
+          "extraTemplateVals": {
+            "type": "inline",
+            "value": ""
+          },
+          "onMergeUseExisting": {
+            "type": "inline",
+            "value": ""
+          },
+          "providerId": {
+            "type": "inline",
+            "value": ""
+          },
+          "templateId": {
+            "type": "inline",
+            "value": ""
+          },
+          "uri": {
+            "type": "inline",
+            "value": ""
+          },
+          "verifyStepId": {
+            "type": "inline",
+            "value": "16.end"
+          }
+        },
+        "id": "16",
+        "name": "Update User / Magic Link / Email",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "17"
+            },
+            {
+              "interactionId": "success",
+              "taskId": "16.end"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 2688,
+          "y": 684
+        }
+      },
+      "17": {
+        "allInputKeys": [],
+        "contextKeys": [
+          "sentTo.maskedEmail"
+        ],
+        "id": "17",
+        "inputsMetadata": [],
+        "name": "Magic Link Sent",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "polling",
+              "taskId": "18"
+            },
+            {
+              "interactionId": "resend",
+              "taskId": "16"
+            }
+          ]
+        },
+        "screenId": "SC3DUYYOmsyBpJr3stHK1JgZS4mxj",
+        "type": "screen",
+        "view": {
+          "x": 3180,
+          "y": 684
+        }
+      },
+      "18": {
+        "allInputKeys": [],
+        "id": "18",
+        "inputsMetadata": [],
+        "name": "Verified Successfully",
+        "next": {},
+        "screenId": "SC3DUYYNuCZ7vRpbkXGUP8lDO2sYI",
+        "type": "screen",
+        "view": {
+          "x": 3660,
+          "y": 600
+        }
+      },
+      "20": {
+        "conditions": [
+          {
+            "atomicConditions": [
+              {
+                "operator": "is-true",
+                "predicate": {
+                  "type": "inline",
+                  "value": ""
+                },
+                "target": {
+                  "type": "context",
+                  "value": "deviceInfo.webAuthnSupport"
+                }
+              },
+              {
+                "operator": "is-false",
+                "predicate": {
+                  "type": "inline",
+                  "value": false
+                },
+                "target": {
+                  "type": "context",
+                  "value": "user.webauthn"
+                }
+              }
+            ],
+            "interactionId": "uvztjt3d2d",
+            "name": "Device Supports and user didn't configure WebAuthn"
+          },
+          {
+            "interactionId": "ELSE",
+            "name": "Else"
+          }
+        ],
+        "id": "20",
+        "name": "WebAuthn Check",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "uvztjt3d2d",
+              "taskId": "7"
+            },
+            {
+              "interactionId": "ELSE",
+              "taskId": "9"
+            }
+          ]
+        },
+        "type": "condition",
+        "view": {
+          "x": 4632,
+          "y": 264
+        }
+      },
+      "21": {
+        "conditions": [
+          {
+            "atomicConditions": [
+              {
+                "operator": "not-empty",
+                "predicate": {
+                  "type": "inline",
+                  "value": ""
+                },
+                "target": {
+                  "type": "context",
+                  "value": "unauthUser.userId"
+                }
+              }
+            ],
+            "interactionId": "pt1vpkauf8k",
+            "name": "True"
+          },
+          {
+            "interactionId": "ELSE",
+            "name": "False"
+          }
+        ],
+        "id": "21",
+        "name": "Does the user exist?",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "pt1vpkauf8k",
+              "taskId": "22"
+            },
+            {
+              "interactionId": "ELSE",
+              "taskId": "11"
+            }
+          ]
+        },
+        "type": "condition",
+        "view": {
+          "x": 756,
+          "y": 204
+        }
+      },
+      "22": {
+        "conditions": [
+          {
+            "atomicConditions": [
+              {
+                "operator": "is-true",
+                "predicate": {
+                  "type": "inline",
+                  "value": false
+                },
+                "target": {
+                  "type": "context",
+                  "value": "unauthUser.webauthn"
+                }
+              }
+            ],
+            "interactionId": "mhew2ed6bv",
+            "name": "True"
+          },
+          {
+            "atomicConditions": [],
+            "interactionId": "ELSE",
+            "name": "False"
+          }
+        ],
+        "errorHandlingV2": {},
+        "id": "22",
+        "name": "Check if user has passkeys set",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "mhew2ed6bv",
+              "taskId": "23"
+            },
+            {
+              "interactionId": "ELSE",
+              "taskId": "24"
+            }
+          ]
+        },
+        "type": "condition",
+        "view": {
+          "x": 1236,
+          "y": 204
+        }
+      },
+      "23": {
+        "action": "webauthn-sign-in-start",
+        "arguments": {
+          "finishStepId": {
+            "type": "inline",
+            "value": "23.end"
+          },
+          "userVerificationDiscouraged": {
+            "type": "inline",
+            "value": ""
+          }
+        },
+        "errorHandlingV2": {
+          "WebauthnFailed": {
+            "errorHandlingType": "custom"
+          },
+          "WebauthnSignInFinishFailed": {
+            "errorHandlingType": "custom"
+          },
+          "WebauthnSignInStartFailed": {
+            "errorHandlingType": "custom"
+          }
+        },
+        "id": "23",
+        "name": "Sign In / Passkeys (WebAuthn)",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "WebauthnSignInStartFailed",
+              "taskId": "11"
+            },
+            {
+              "interactionId": "success",
+              "taskId": "23.end"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 1728,
+          "y": 12
+        }
+      },
+      "24": {
+        "conditions": [
+          {
+            "atomicConditions": [
+              {
+                "operator": "is-true",
+                "predicate": {
+                  "type": "inline",
+                  "value": ""
+                },
+                "target": {
+                  "type": "context",
+                  "value": "unauthUser.password"
+                }
+              }
+            ],
+            "interactionId": "sgpmvlc91c",
+            "name": "Yes"
+          },
+          {
+            "interactionId": "ELSE",
+            "name": "No"
+          }
+        ],
+        "id": "24",
+        "name": "Does the user have a password?",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "sgpmvlc91c",
+              "taskId": "25"
+            },
+            {
+              "interactionId": "ELSE",
+              "taskId": "11"
+            }
+          ]
+        },
+        "type": "condition",
+        "view": {
+          "x": 1728,
+          "y": 396
+        }
+      },
+      "25": {
+        "allInputKeys": [
+          "password"
+        ],
+        "id": "25",
+        "inputsMetadata": [
+          {
+            "displayName": "Login Password",
+            "key": "password"
+          }
+        ],
+        "name": "Sign In",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "pXVwWREG7M",
+              "taskId": "33"
+            },
+            {
+              "interactionId": "tZbr-2eP17",
+              "taskId": "38"
+            }
+          ]
+        },
+        "screenId": "SC3DUchUP1SAloln9dFUvJ3nrKW2K",
+        "type": "screen",
+        "view": {
+          "x": 2208,
+          "y": 828
+        }
+      },
+      "31": {
+        "action": "password-update",
+        "id": "31",
+        "name": "Update Password",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "7"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 4632,
+          "y": 1260
+        }
+      },
+      "32": {
+        "allInputKeys": [
+          "newPassword_noPolicyOverrides"
+        ],
+        "calculatedInputKeys": true,
+        "contextKeys": [
+          "pswdPolicy"
+        ],
+        "id": "32",
+        "inputKeys": [
+          "newPassword_noPolicyOverrides"
+        ],
+        "inputsMetadata": [
+          {
+            "displayName": "New Password",
+            "key": "newPassword_noPolicyOverrides"
+          }
+        ],
+        "name": "Set Password",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "n6WbbqzlwS",
+              "taskId": "31"
+            }
+          ]
+        },
+        "screenId": "SC3DUchRVbKn5eqinPe2NYarOfAhg",
+        "type": "screen",
+        "view": {
+          "x": 4140,
+          "y": 1224
+        }
+      },
+      "33": {
+        "action": "password-sign-in",
+        "errorHandlingV2": {
+          "PasswordExpired": {
+            "errorHandlingType": "custom"
+          }
+        },
+        "id": "33",
+        "name": "Sign In / Password",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "7"
+            },
+            {
+              "interactionId": "PasswordExpired",
+              "taskId": "34"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 3660,
+          "y": 792
+        }
+      },
+      "34": {
+        "allInputKeys": [
+          "newPassword_noPolicyOverrides",
+          "password"
+        ],
+        "contextKeys": [
+          "pswdPolicy"
+        ],
+        "id": "34",
+        "inputKeys": [
+          "newPassword_noPolicyOverrides"
+        ],
+        "inputsMetadata": [
+          {
+            "displayName": "New Password",
+            "key": "newPassword_noPolicyOverrides"
+          },
+          {
+            "displayName": "Login Password",
+            "key": "password"
+          }
+        ],
+        "name": "Replace Expired Password",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "update-password",
+              "taskId": "35"
+            }
+          ]
+        },
+        "screenId": "SC3DUchPKQXTKg0wy0RlRyfZHHiRp",
+        "type": "screen",
+        "view": {
+          "x": 4140,
+          "y": 720
+        }
+      },
+      "35": {
+        "action": "password-replace",
+        "errorHandlingV2": {
+          "PasswordReplaceFailed": {
+            "errorHandlingType": "automatic"
+          }
+        },
+        "id": "35",
+        "name": "Replace Password",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "7"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 4632,
+          "y": 588
+        }
+      },
+      "38": {
+        "action": "sign-up-or-in-otp-email",
+        "arguments": {
+          "providerId": {
+            "type": "inline",
+            "value": ""
+          },
+          "templateId": {
+            "type": "inline",
+            "value": ""
+          }
+        },
+        "id": "38",
+        "name": "Sign Up or In / OTP / Email",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "39"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 2688,
+          "y": 1128
+        }
+      },
+      "39": {
+        "allInputKeys": [
+          "code"
+        ],
+        "contextKeys": [
+          "sentTo.maskedEmail"
+        ],
+        "id": "39",
+        "inputsMetadata": [
+          {
+            "displayName": "One Time Code",
+            "key": "code"
+          }
+        ],
+        "name": "Verify OTP",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "resend",
+              "taskId": "38"
+            },
+            {
+              "interactionId": "SgSm98sFRr",
+              "taskId": "40"
+            }
+          ]
+        },
+        "screenId": "SC3DUgNwih95viffZJfQXMTXFOYE8",
+        "type": "screen",
+        "view": {
+          "x": 3180,
+          "y": 1128
+        }
+      },
+      "40": {
+        "action": "verify-code-otp-email",
+        "id": "40",
+        "name": "Verify Code / OTP / Email",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "32"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 3660,
+          "y": 1200
+        }
+      },
+      "41": {
+        "conditions": [
+          {
+            "atomicConditions": [
+              {
+                "operator": "is-true",
+                "predicate": {
+                  "type": "inline",
+                  "value": ""
+                },
+                "target": {
+                  "type": "context",
+                  "value": "authInfo.firstSeen"
+                }
+              }
+            ],
+            "interactionId": "3q2o3tqxrva",
+            "name": "New user"
+          },
+          {
+            "interactionId": "ELSE",
+            "name": "Existing user"
+          }
+        ],
+        "id": "41",
+        "name": "Is new user?",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "3q2o3tqxrva",
+              "taskId": "5"
+            },
+            {
+              "interactionId": "ELSE",
+              "taskId": "9"
+            }
+          ]
+        },
+        "type": "condition",
+        "view": {
+          "x": 3180,
+          "y": 396
+        }
+      },
+      "11.end": {
+        "action": "verify-magic-link",
+        "arguments": {
+          "extraTemplateVals": {
+            "type": "inline",
+            "value": null
+          },
+          "providerId": {
+            "type": "inline",
+            "value": ""
+          },
+          "skipVerify": {
+            "type": "inline",
+            "value": false
+          },
+          "templateId": {
+            "type": "inline",
+            "value": ""
+          },
+          "uri": {
+            "type": "inline",
+            "value": ""
+          },
+          "verifyStepId": {
+            "type": "inline",
+            "value": "11.end"
+          }
+        },
+        "errorHandlingV2": {
+          "ActionErrorRateLimitExceeded": {
+            "errorHandlingType": "automatic"
+          },
+          "ActionErrorTenantDisabled": {
+            "errorHandlingType": "automatic"
+          },
+          "ActionErrorTenantRequiresSSO": {
+            "errorHandlingType": "automatic"
+          },
+          "MagicLinkSignUpOrInFailed": {
+            "errorHandlingType": "automatic"
+          },
+          "MagicLinkUpdateUserConflict": {
+            "errorHandlingType": "automatic"
+          },
+          "MagicLinkVerifyFailed": {
+            "errorHandlingType": "automatic"
+          }
+        },
+        "id": "11.end",
+        "name": "Sign Up or In / Magic Link / Email",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "4"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 2208,
+          "y": 156
+        }
+      },
+      "14.end": {
+        "action": "webauthn-sign-up-or-in-finish",
+        "arguments": {
+          "finishStepId": {
+            "type": "inline",
+            "value": "14.end"
+          },
+          "restrictPasskeyTypes": {
+            "type": "inline",
+            "value": ""
+          },
+          "userVerificationDiscouraged": {
+            "type": "inline",
+            "value": ""
+          }
+        },
+        "id": "14.end",
+        "name": "Sign Up or In/ Passkeys (WebAuthn)",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "15"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 756,
+          "y": 492
+        }
+      },
+      "16.end": {
+        "action": "verify-magic-link",
+        "arguments": {
+          "addToLoginIDs": {
+            "type": "inline",
+            "value": ""
+          },
+          "extraTemplateVals": {
+            "type": "inline",
+            "value": ""
+          },
+          "onMergeUseExisting": {
+            "type": "inline",
+            "value": ""
+          },
+          "providerId": {
+            "type": "inline",
+            "value": ""
+          },
+          "templateId": {
+            "type": "inline",
+            "value": ""
+          },
+          "uri": {
+            "type": "inline",
+            "value": ""
+          },
+          "verifyStepId": {
+            "type": "inline",
+            "value": "16.end"
+          }
+        },
+        "id": "16.end",
+        "name": "Update User / Magic Link / Email",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "4"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 2688,
+          "y": 684
+        }
+      },
+      "23.end": {
+        "action": "webauthn-sign-in-finish",
+        "arguments": {
+          "finishStepId": {
+            "type": "inline",
+            "value": "23.end"
+          },
+          "userVerificationDiscouraged": {
+            "type": "inline",
+            "value": ""
+          }
+        },
+        "errorHandlingV2": {
+          "WebauthnFailed": {
+            "errorHandlingType": "custom"
+          },
+          "WebauthnSignInFinishFailed": {
+            "errorHandlingType": "custom"
+          },
+          "WebauthnSignInStartFailed": {
+            "errorHandlingType": "custom"
+          }
+        },
+        "id": "23.end",
+        "name": "Sign In / Passkeys (WebAuthn)",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "9"
+            },
+            {
+              "interactionId": "WebauthnFailed",
+              "taskId": "11"
+            },
+            {
+              "interactionId": "WebauthnSignInFinishFailed",
+              "taskId": "11"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 1728,
+          "y": 12
+        }
+      },
+      "8.end": {
+        "action": "webauthn-update-user-finish",
+        "arguments": {
+          "finishStepId": {
+            "type": "inline",
+            "value": "8.end"
+          },
+          "restrictPasskeyTypes": {
+            "type": "inline",
+            "value": ""
+          },
+          "userVerificationDiscouraged": {
+            "type": "inline",
+            "value": ""
+          }
+        },
+        "id": "8.end",
+        "name": "Update User/ Passkeys (WebAuthn)",
+        "next": {
+          "rules": [
+            {
+              "interactionId": "success",
+              "taskId": "9"
+            }
+          ]
+        },
+        "type": "automated",
+        "view": {
+          "x": 5592,
+          "y": 252
+        }
+      },
+      "start": {
+        "id": "start",
+        "name": "start",
+        "next": {
+          "rules": [
+            {
+              "taskId": "0"
+            }
+          ]
+        },
+        "view": {
+          "x": 12,
+          "y": 204
+        }
+      }
+    }
+  },
+  "flowId": "sign-up-or-in-bank",
+  "metadata": {
+    "componentsVersion": "3.3.2",
+    "managementConfig": {
+      "triggers": {
+        "eventTriggers": {}
+      }
+    },
+    "name": "sign-up-or-in-bank",
+    "sharedInteractions": [
+      {
+        "id": "9.success",
+        "type": "success"
+      }
+    ]
+  },
+  "references": {},
+  "screens": [
+    {
+      "contents": {
+        "3MLk4he5kE": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "Passkeys will make it easier for you to sign in!",
+            "full-width": false,
+            "id": "3MLk4he5kE",
+            "italic": false,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "subtitle2"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "5Z77qNCFyx": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "UZgoCc-hSj",
+            "Tta9SiPHJk"
+          ],
+          "parent": "ROOT",
+          "props": {
+            "align": "center",
+            "background": "#ffffff00",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "5Z77qNCFyx",
+            "justify": "start",
+            "paddingX": "4",
+            "paddingY": "4",
+            "spaceBetween": "1.5",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "ROOT": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "XULG-iObbq",
+            "eORB9SjchW",
+            "3MLk4he5kE",
+            "5Z77qNCFyx",
+            "h2nS6aanWj"
+          ],
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "ROOT",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "8",
+            "spaceBetween": "4",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "Tta9SiPHJk": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "5Z77qNCFyx",
+          "props": {
+            "children": "Not now, maybe later",
+            "data-type": "button",
+            "formNoValidate": false,
+            "full-width": true,
+            "id": "Tta9SiPHJk",
+            "mode": "primary",
+            "size": "md",
+            "variant": "outline"
+          },
+          "type": {
+            "resolvedName": "Button"
+          }
+        },
+        "UZgoCc-hSj": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Passkey Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "5Z77qNCFyx",
+          "props": {
+            "children": "Add passkeys",
+            "data-type": "biometrics",
+            "formNoValidate": false,
+            "full-width": true,
+            "id": "UZgoCc-hSj",
+            "mode": "primary",
+            "size": "md",
+            "startIcon": "passkey",
+            "startIconColorText": true,
+            "variant": "contained"
+          },
+          "type": {
+            "resolvedName": "BiometricsButton"
+          }
+        },
+        "XULG-iObbq": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "Configure Passkeys?",
+            "full-width": false,
+            "id": "XULG-iObbq",
+            "italic": false,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "h3"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "eORB9SjchW": {
+          "custom": {},
+          "displayName": "Image",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "alt": "Image",
+            "id": "eORB9SjchW",
+            "src": "https://imgs.descope.com/flows/common/v1/fingerprint.svg"
+          },
+          "type": {
+            "resolvedName": "Image"
+          }
+        },
+        "h2nS6aanWj": {
+          "custom": {},
+          "displayName": "Error Message",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "data-type": "error-message",
+            "full-width": false,
+            "id": "h2nS6aanWj",
+            "italic": false,
+            "mode": "error",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "ErrorMessage"
+          }
+        }
+      },
+      "interactions": [
+        {
+          "id": "Tta9SiPHJk",
+          "label": "Not now, maybe later"
+        },
+        {
+          "icon": "passkey",
+          "id": "UZgoCc-hSj",
+          "label": "Add passkeys"
+        }
+      ],
+      "screenId": "SC3DUYYIvXJ7MPCNhOW515W4yaZkf"
+    },
+    {
+      "contents": {
+        "1nTclDw-zq": {
+          "custom": {},
+          "displayName": "Logo",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "alt": "Logo",
+            "height": "100px",
+            "id": "1nTclDw-zq"
+          },
+          "type": {
+            "resolvedName": "Logo"
+          }
+        },
+        "7uUs-tNkNt": {
+          "custom": {
+            "type": "input"
+          },
+          "displayName": "Email Input",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "bordered": true,
+            "data-errormessage-pattern-mismatch": "Must be a valid email",
+            "full-width": true,
+            "id": "7uUs-tNkNt",
+            "label": "",
+            "max": 100,
+            "name": "email",
+            "pattern": "^[\\w._%+-]+@[\\w.-]+\\.[A-Za-z]{2,}$",
+            "placeholder": "Email address *",
+            "required": true,
+            "size": "md",
+            "type": "email"
+          },
+          "type": {
+            "resolvedName": "EmailInput"
+          }
+        },
+        "GeQo6CpEaf": {
+          "custom": {},
+          "displayName": "Link",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "pol42jvvqB",
+          "props": {
+            "children": "Terms of Service",
+            "full-width": false,
+            "href": "",
+            "id": "GeQo6CpEaf",
+            "italic": false,
+            "mode": "primary",
+            "target": "_blank",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "Link"
+          }
+        },
+        "LIpGvjBzAc": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "Continue",
+            "data-type": "button",
+            "formNoValidate": false,
+            "full-width": true,
+            "id": "LIpGvjBzAc",
+            "mode": "primary",
+            "size": "md",
+            "variant": "contained"
+          },
+          "type": {
+            "resolvedName": "Button"
+          }
+        },
+        "Mt7T9tbSjP": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "Welcome!",
+            "full-width": false,
+            "id": "Mt7T9tbSjP",
+            "italic": false,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "h3"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "ROOT": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "1nTclDw-zq",
+            "Mt7T9tbSjP",
+            "7uUs-tNkNt",
+            "pol42jvvqB",
+            "LIpGvjBzAc",
+            "iQxKqk8Rnm",
+            "mbeJnFYaVs",
+            "aLbXbyPskV"
+          ],
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "ROOT",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "8",
+            "spaceBetween": "4",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "aLbXbyPskV": {
+          "custom": {},
+          "displayName": "Error Message",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "data-type": "error-message",
+            "full-width": false,
+            "id": "aLbXbyPskV",
+            "italic": false,
+            "mode": "error",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "ErrorMessage"
+          }
+        },
+        "iQxKqk8Rnm": {
+          "custom": {},
+          "displayName": "Divider",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "OR",
+            "id": "iQxKqk8Rnm",
+            "italic": false,
+            "mode": "primary",
+            "variant": "body1",
+            "vertical": false
+          },
+          "type": {
+            "resolvedName": "Divider"
+          }
+        },
+        "kjkfLmrh81": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "pol42jvvqB",
+          "props": {
+            "children": "By continuing, I agree to the Company's",
+            "full-width": false,
+            "id": "kjkfLmrh81",
+            "italic": false,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "mbeJnFYaVs": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Passkey Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "Sign in with Passkeys",
+            "data-type": "biometrics",
+            "formNoValidate": false,
+            "full-width": true,
+            "id": "mbeJnFYaVs",
+            "mode": "primary",
+            "size": "md",
+            "startIcon": "passkey",
+            "startIconColorText": true,
+            "variant": "outline"
+          },
+          "type": {
+            "resolvedName": "BiometricsButton"
+          }
+        },
+        "mvNWe1vKnG": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "pol42jvvqB",
+          "props": {
+            "children": "and",
+            "full-width": false,
+            "id": "mvNWe1vKnG",
+            "italic": false,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "o8k265dZnh": {
+          "custom": {},
+          "displayName": "Link",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "pol42jvvqB",
+          "props": {
+            "children": "Privacy Statement",
+            "full-width": false,
+            "href": "",
+            "id": "o8k265dZnh",
+            "italic": false,
+            "mode": "primary",
+            "target": "_blank",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "Link"
+          }
+        },
+        "pol42jvvqB": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "kjkfLmrh81",
+            "o8k265dZnh",
+            "mvNWe1vKnG",
+            "GeQo6CpEaf"
+          ],
+          "parent": "ROOT",
+          "props": {
+            "align": "start",
+            "background": "#ffffff00",
+            "data-editor-type": "container",
+            "direction": "row",
+            "id": "pol42jvvqB",
+            "justify": "center",
+            "paddingX": "5",
+            "paddingY": "1",
+            "spaceBetween": "0.5",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        }
+      },
+      "interactions": [
+        {
+          "id": "LIpGvjBzAc",
+          "label": "Continue"
+        },
+        {
+          "icon": "passkey",
+          "id": "mbeJnFYaVs",
+          "label": "Sign in with Passkeys"
+        }
+      ],
+      "screenId": "SC3DUYYJiQUbnpy1kl4yCSFeLotRx"
+    },
+    {
+      "contents": {
+        "EbW8KMdjAx": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "WzZtEzEpyY",
+          "props": {
+            "children": "Choose another authentication method",
+            "data-type": "button",
+            "formNoValidate": false,
+            "full-width": true,
+            "id": "EbW8KMdjAx",
+            "mode": "primary",
+            "size": "sm",
+            "variant": "link"
+          },
+          "type": {
+            "resolvedName": "Button"
+          }
+        },
+        "LgBFKYoM2h": {
+          "custom": {},
+          "displayName": "Error Message",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "data-type": "error-message",
+            "full-width": false,
+            "id": "LgBFKYoM2h",
+            "italic": false,
+            "mode": "error",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "ErrorMessage"
+          }
+        },
+        "R4ubbo8hKX": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "Click the link in the email to continue",
+            "full-width": false,
+            "id": "R4ubbo8hKX",
+            "italic": false,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "subtitle2"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "ROOT": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "hLL454bn-h",
+            "R4ubbo8hKX",
+            "lpP_khmMrA",
+            "WzZtEzEpyY",
+            "LgBFKYoM2h"
+          ],
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "ROOT",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "4",
+            "spaceBetween": "5",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "WzZtEzEpyY": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "resend",
+            "EbW8KMdjAx"
+          ],
+          "parent": "ROOT",
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "WzZtEzEpyY",
+            "justify": "start",
+            "paddingX": "4",
+            "paddingY": "4",
+            "spaceBetween": "1.5",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "hLL454bn-h": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "We've sent a verification link to {{sentTo.maskedEmail}}",
+            "full-width": false,
+            "id": "hLL454bn-h",
+            "italic": false,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "subtitle1"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "lpP_khmMrA": {
+          "custom": {
+            "type": "polling"
+          },
+          "displayName": "Polling",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "color": "primary",
+            "data-type": "polling",
+            "id": "lpP_khmMrA",
+            "size": "md",
+            "variant": "linear"
+          },
+          "type": {
+            "resolvedName": "PollingLoader"
+          }
+        },
+        "resend": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "WzZtEzEpyY",
+          "props": {
+            "children": "Send again",
+            "data-type": "button",
+            "formNoValidate": false,
+            "full-width": true,
+            "id": "resend",
+            "mode": "primary",
+            "size": "sm",
+            "variant": "contained"
+          },
+          "type": {
+            "resolvedName": "Button"
+          }
+        }
+      },
+      "interactions": [
+        {
+          "id": "EbW8KMdjAx",
+          "label": "Choose another authentication method"
+        },
+        {
+          "id": "polling",
+          "label": "Polling"
+        },
+        {
+          "id": "resend",
+          "label": "Send again"
+        }
+      ],
+      "screenId": "SC3DUYYKtt7tz1ifkBlRlDzzCuiDe"
+    },
+    {
+      "contents": {
+        "Hz3zq9Pbd8": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "Submit",
+            "data-type": "button",
+            "formNoValidate": false,
+            "full-width": true,
+            "id": "Hz3zq9Pbd8",
+            "mode": "primary",
+            "size": "md",
+            "variant": "contained"
+          },
+          "type": {
+            "resolvedName": "Button"
+          }
+        },
+        "ROOT": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "jdS41bq0_W",
+            "rgN-cEL5Si",
+            "Hz3zq9Pbd8",
+            "geqAgGFsXr"
+          ],
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "ROOT",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "8",
+            "spaceBetween": "4",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "geqAgGFsXr": {
+          "custom": {},
+          "displayName": "Error Message",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "data-type": "error-message",
+            "full-width": false,
+            "id": "geqAgGFsXr",
+            "italic": false,
+            "mode": "error",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "ErrorMessage"
+          }
+        },
+        "jdS41bq0_W": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "To complete your sign up, please provide the following information",
+            "full-width": false,
+            "id": "jdS41bq0_W",
+            "italic": false,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "subtitle2"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "rgN-cEL5Si": {
+          "custom": {
+            "type": "input"
+          },
+          "displayName": "Full Name Input",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "bordered": true,
+            "full-width": true,
+            "id": "rgN-cEL5Si",
+            "label": "Full name",
+            "max": 100,
+            "name": "fullName",
+            "placeholder": "Full name",
+            "required": false,
+            "size": "md",
+            "type": "text"
+          },
+          "type": {
+            "resolvedName": "FullNameInput"
+          }
+        }
+      },
+      "interactions": [
+        {
+          "id": "Hz3zq9Pbd8",
+          "label": "Submit"
+        }
+      ],
+      "screenId": "SC3DUYYLnpFF46q2qJsBV1I0W5IPm"
+    },
+    {
+      "contents": {
+        "1sMmkeVxVT": {
+          "custom": {},
+          "displayName": "Error Message",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "data-type": "error-message",
+            "full-width": false,
+            "id": "1sMmkeVxVT",
+            "italic": false,
+            "mode": "error",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "ErrorMessage"
+          }
+        },
+        "LmrSIGOWZb": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "You're authenticated, you can close this window now",
+            "full-width": false,
+            "id": "LmrSIGOWZb",
+            "italic": false,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "subtitle1"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "PUZgvFyUAB": {
+          "custom": {},
+          "displayName": "Image",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "alt": "Image",
+            "height": "50px",
+            "id": "PUZgvFyUAB",
+            "src": "https://imgs.descope.com/flows/common/v1/green-checkmark.png"
+          },
+          "type": {
+            "resolvedName": "Image"
+          }
+        },
+        "ROOT": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "PUZgvFyUAB",
+            "LmrSIGOWZb",
+            "1sMmkeVxVT"
+          ],
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "ROOT",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "8",
+            "spaceBetween": "4",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        }
+      },
+      "screenId": "SC3DUYYNuCZ7vRpbkXGUP8lDO2sYI"
+    },
+    {
+      "contents": {
+        "7ekqaI_T5T": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "We've sent a verification link to {{sentTo.maskedEmail}}",
+            "full-width": false,
+            "id": "7ekqaI_T5T",
+            "italic": false,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "subtitle1"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "83rQshkg1S": {
+          "custom": {
+            "type": "polling"
+          },
+          "displayName": "Polling",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "color": "primary",
+            "data-type": "polling",
+            "id": "83rQshkg1S",
+            "size": "md",
+            "variant": "linear"
+          },
+          "type": {
+            "resolvedName": "PollingLoader"
+          }
+        },
+        "HolaA10NeP": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "Click the link in the email to continue",
+            "full-width": false,
+            "id": "HolaA10NeP",
+            "italic": false,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "subtitle2"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "KJo506s04p": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "resend"
+          ],
+          "parent": "ROOT",
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "KJo506s04p",
+            "justify": "start",
+            "paddingX": "4",
+            "paddingY": "4",
+            "spaceBetween": "1.5",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "ROOT": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "7ekqaI_T5T",
+            "HolaA10NeP",
+            "83rQshkg1S",
+            "KJo506s04p",
+            "SFhfbUwXin"
+          ],
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "ROOT",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "4",
+            "spaceBetween": "5",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "SFhfbUwXin": {
+          "custom": {},
+          "displayName": "Error Message",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "data-type": "error-message",
+            "full-width": false,
+            "id": "SFhfbUwXin",
+            "italic": false,
+            "mode": "error",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "ErrorMessage"
+          }
+        },
+        "resend": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "KJo506s04p",
+          "props": {
+            "children": "Send again",
+            "data-type": "button",
+            "formNoValidate": false,
+            "full-width": true,
+            "id": "resend",
+            "mode": "primary",
+            "size": "sm",
+            "variant": "contained"
+          },
+          "type": {
+            "resolvedName": "Button"
+          }
+        }
+      },
+      "interactions": [
+        {
+          "id": "polling",
+          "label": "Polling"
+        },
+        {
+          "id": "resend",
+          "label": "Send again"
+        }
+      ],
+      "screenId": "SC3DUYYOmsyBpJr3stHK1JgZS4mxj"
+    },
+    {
+      "contents": {
+        "1sMmkeVxVT": {
+          "custom": {},
+          "displayName": "Error Message",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "data-type": "error-message",
+            "full-width": false,
+            "hide-when-empty": true,
+            "id": "1sMmkeVxVT",
+            "italic": false,
+            "mode": "error",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "ErrorMessage"
+          }
+        },
+        "35R13zf5_Q": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "Replace it with a new one",
+            "data-errormessage-value-missing": "Please fill out this field.",
+            "full-width": false,
+            "id": "35R13zf5_Q",
+            "isEnriched": true,
+            "italic": false,
+            "link-target-blank": true,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "subtitle2"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "5QWgYTNygk": {
+          "custom": {
+            "type": "input"
+          },
+          "displayName": "New Password",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "active-policies": [],
+            "autocomplete": "new-password",
+            "bordered": true,
+            "confirm-label": "Confirm password",
+            "confirm-placeholder": "Confirm password",
+            "confirmInputProps": {},
+            "data-errormessage-pattern-mismatch": "Please match the requested format.",
+            "data-errormessage-value-missing": "Please fill out this field.",
+            "data-password-policy-message-lowercase": "1 lowercase letter",
+            "data-password-policy-message-minlength": "Minimum {{value}} characters",
+            "data-password-policy-message-nonalphanumeric": "1 symbol",
+            "data-password-policy-message-number": "1 number",
+            "data-password-policy-message-uppercase": "1 uppercase letter",
+            "full-width": true,
+            "has-confirm": true,
+            "has-validation": true,
+            "id": "5QWgYTNygk",
+            "label-type": "static",
+            "name": "newPassword",
+            "password-label": "New Password",
+            "password-placeholder": "New Password",
+            "policy-label": "Your password must have at least:",
+            "required": true,
+            "size": "md",
+            "st-policy-preview-padding": "0"
+          },
+          "type": {
+            "resolvedName": "NewPassword"
+          }
+        },
+        "LmrSIGOWZb": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "Your password is expired",
+            "data-errormessage-value-missing": "Please fill out this field.",
+            "full-width": false,
+            "id": "LmrSIGOWZb",
+            "isEnriched": true,
+            "italic": false,
+            "link-target-blank": true,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "subtitle1"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "PB_ck7ABXt": {
+          "custom": {},
+          "displayName": "Login Password",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "autocomplete": "current-password",
+            "bordered": true,
+            "data-errormessage-value-missing": "Please fill out this field.",
+            "full-width": true,
+            "id": "PB_ck7ABXt",
+            "label": "Existing Password",
+            "label-type": "static",
+            "name": "password",
+            "placeholder": "Existing Password",
+            "size": "md",
+            "type": "password"
+          },
+          "type": {
+            "resolvedName": "Password"
+          }
+        },
+        "ROOT": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "LmrSIGOWZb",
+            "35R13zf5_Q",
+            "PB_ck7ABXt",
+            "5QWgYTNygk",
+            "update-password",
+            "1sMmkeVxVT"
+          ],
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "ROOT",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "8",
+            "spaceBetween": "4",
+            "st-items-grow": 0,
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "update-password": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "auto-submit": true,
+            "children": "Update password",
+            "color": "primary",
+            "data-type": "button",
+            "formNoValidate": false,
+            "full-width": true,
+            "id": "update-password",
+            "mode": "primary",
+            "size": "md",
+            "variant": "contained"
+          },
+          "type": {
+            "resolvedName": "Button"
+          }
+        }
+      },
+      "interactions": [
+        {
+          "id": "update-password",
+          "label": "Update password"
+        }
+      ],
+      "screenId": "SC3DUchPKQXTKg0wy0RlRyfZHHiRp"
+    },
+    {
+      "contents": {
+        "1sMmkeVxVT": {
+          "custom": {},
+          "displayName": "Error Message",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "align": "center",
+            "data-type": "error-message",
+            "full-width": false,
+            "hide-when-empty": true,
+            "id": "1sMmkeVxVT",
+            "italic": false,
+            "mode": "error",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "ErrorMessage"
+          }
+        },
+        "LmrSIGOWZb": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "align": "center",
+            "children": "Set Password\n\n",
+            "data-errormessage-value-missing": "Please fill out this field.",
+            "full-width": false,
+            "id": "LmrSIGOWZb",
+            "isEnriched": true,
+            "italic": false,
+            "link-target-blank": true,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "h2"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "ROOT": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "LmrSIGOWZb",
+            "nNeWkS1Gma",
+            "1sMmkeVxVT"
+          ],
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "ROOT",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "8",
+            "space-between": "md",
+            "spaceBetween": "4",
+            "st-items-grow": 0,
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "fynHIXrCoJ": {
+          "custom": {
+            "type": "input"
+          },
+          "displayName": "New Password",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "nNeWkS1Gma",
+          "props": {
+            "active-policies": [],
+            "autocomplete": "new-password",
+            "bordered": true,
+            "confirm-label": "Confirm password",
+            "confirm-placeholder": "Confirm password",
+            "data-errormessage-pattern-mismatch": "Please match the requested format.",
+            "data-errormessage-type-mismatch": "Value does not comply with requirements",
+            "data-errormessage-value-missing": "Please fill out this field.",
+            "data-password-policy-message-lowercase": "1 lowercase letter",
+            "data-password-policy-message-minlength": "Minimum {{value}} characters",
+            "data-password-policy-message-nonalphanumeric": "1 symbol",
+            "data-password-policy-message-number": "1 number",
+            "data-password-policy-message-uppercase": "1 uppercase letter",
+            "external-input": false,
+            "full-width": true,
+            "has-confirm": true,
+            "has-validation": true,
+            "id": "fynHIXrCoJ",
+            "label-type": "static",
+            "name": "newPassword",
+            "password-label": "Password",
+            "password-placeholder": "Password",
+            "policy-label": "Your password must have at least:",
+            "required": true,
+            "size": "md",
+            "st-policy-preview-padding": "0"
+          },
+          "type": {
+            "resolvedName": "NewPassword"
+          }
+        },
+        "n6WbbqzlwS": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "nNeWkS1Gma",
+          "props": {
+            "auto-submit": true,
+            "children": "Continue",
+            "color": "primary",
+            "data-type": "button",
+            "formNoValidate": false,
+            "full-width": false,
+            "id": "n6WbbqzlwS",
+            "shape": "",
+            "size": "md",
+            "variant": "contained"
+          },
+          "type": {
+            "resolvedName": "Button"
+          }
+        },
+        "nNeWkS1Gma": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "fynHIXrCoJ",
+            "n6WbbqzlwS"
+          ],
+          "parent": "ROOT",
+          "props": {
+            "align": "start",
+            "background": "#ffffff00",
+            "data-editor-type": "container",
+            "direction": "row",
+            "id": "nNeWkS1Gma",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "8",
+            "spaceBetween": "4",
+            "st-items-grow": 0,
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        }
+      },
+      "interactions": [
+        {
+          "id": "n6WbbqzlwS",
+          "label": "Continue"
+        }
+      ],
+      "screenId": "SC3DUchRVbKn5eqinPe2NYarOfAhg"
+    },
+    {
+      "contents": {
+        "1sMmkeVxVT": {
+          "custom": {},
+          "displayName": "Error Message",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "align": "center",
+            "data-type": "error-message",
+            "full-width": false,
+            "hide-when-empty": true,
+            "id": "1sMmkeVxVT",
+            "italic": false,
+            "mode": "error",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "ErrorMessage"
+          }
+        },
+        "A57M_E58gl": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "tZbr-2eP17"
+          ],
+          "parent": "f3fJe-t0g2",
+          "props": {
+            "align": "start",
+            "background": "#ffffff00",
+            "data-editor-type": "container",
+            "direction": "row",
+            "id": "A57M_E58gl",
+            "justify": "start",
+            "paddingX": "0",
+            "paddingY": "0",
+            "spaceBetween": "0",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "LmrSIGOWZb": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "align": "center",
+            "children": "Sign In",
+            "data-errormessage-value-missing": "Please fill out this field.",
+            "full-width": false,
+            "id": "LmrSIGOWZb",
+            "italic": false,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "h2"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "ROOT": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "LmrSIGOWZb",
+            "f3fJe-t0g2",
+            "1sMmkeVxVT"
+          ],
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "ROOT",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "8",
+            "space-between": "md",
+            "spaceBetween": "4",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "ZjwRBQuJQW": {
+          "custom": {},
+          "displayName": "Login Password",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "f3fJe-t0g2",
+          "props": {
+            "autocomplete": "current-password",
+            "bordered": true,
+            "data-errormessage-value-missing": "Please fill out this field.",
+            "full-width": true,
+            "id": "ZjwRBQuJQW",
+            "label": "Password",
+            "label-type": "static",
+            "name": "password",
+            "placeholder": "Password",
+            "size": "md",
+            "type": "password"
+          },
+          "type": {
+            "resolvedName": "Password"
+          }
+        },
+        "f3fJe-t0g2": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "ZjwRBQuJQW",
+            "A57M_E58gl",
+            "pXVwWREG7M"
+          ],
+          "parent": "ROOT",
+          "props": {
+            "align": "start",
+            "background": "#ffffff00",
+            "data-editor-type": "container",
+            "direction": "row",
+            "id": "f3fJe-t0g2",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "8",
+            "spaceBetween": "0",
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "pXVwWREG7M": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "f3fJe-t0g2",
+          "props": {
+            "auto-submit": true,
+            "children": "Continue",
+            "color": "primary",
+            "data-type": "button",
+            "formNoValidate": false,
+            "full-width": false,
+            "id": "pXVwWREG7M",
+            "shape": "",
+            "size": "md",
+            "variant": "contained"
+          },
+          "type": {
+            "resolvedName": "Button"
+          }
+        },
+        "tZbr-2eP17": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "A57M_E58gl",
+          "props": {
+            "auto-submit": false,
+            "children": "Forgot password",
+            "color": "primary",
+            "data-type": "button",
+            "formNoValidate": false,
+            "full-width": false,
+            "id": "tZbr-2eP17",
+            "shape": "",
+            "size": "md",
+            "variant": "link"
+          },
+          "type": {
+            "resolvedName": "Button"
+          }
+        }
+      },
+      "interactions": [
+        {
+          "id": "pXVwWREG7M",
+          "label": "Continue"
+        },
+        {
+          "id": "tZbr-2eP17",
+          "label": "Forgot password"
+        }
+      ],
+      "screenId": "SC3DUchUP1SAloln9dFUvJ3nrKW2K"
+    },
+    {
+      "contents": {
+        "ROOT": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "auED4dEJkJ",
+            "eBGiu9cYSb",
+            "yZNZ2ZVVu_"
+          ],
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "ROOT",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "4",
+            "spaceBetween": "5",
+            "st-items-grow": 0,
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "SgSm98sFRr": {
+          "custom": {
+            "type": "oneTimeCode"
+          },
+          "displayName": "One Time Code",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "yZNZ2ZVVu_",
+          "props": {
+            "bordered": true,
+            "data-auto-submit": true,
+            "data-errormessage-pattern-mismatch": "Must be a 6 digit number",
+            "data-errormessage-value-missing": "Please fill out this field.",
+            "digits": 6,
+            "fullWidth": false,
+            "id": "SgSm98sFRr",
+            "label": "",
+            "name": "code",
+            "required": true,
+            "size": "lg",
+            "type": "tel"
+          },
+          "type": {
+            "resolvedName": "CodeInput"
+          }
+        },
+        "auED4dEJkJ": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "We've sent a message containing a 6-digit code to {{sentTo.maskedEmail}}",
+            "data-errormessage-value-missing": "Please fill out this field.",
+            "full-width": false,
+            "id": "auED4dEJkJ",
+            "isEnriched": true,
+            "italic": false,
+            "link-target-blank": true,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "subtitle1"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "eBGiu9cYSb": {
+          "custom": {},
+          "displayName": "Text",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "ROOT",
+          "props": {
+            "children": "Enter it below\n\n",
+            "data-errormessage-value-missing": "Please fill out this field.",
+            "full-width": false,
+            "id": "eBGiu9cYSb",
+            "isEnriched": true,
+            "italic": false,
+            "link-target-blank": true,
+            "mode": "primary",
+            "text-align": "center",
+            "variant": "subtitle2"
+          },
+          "type": {
+            "resolvedName": "Text"
+          }
+        },
+        "fyz-aN6hyx": {
+          "custom": {},
+          "displayName": "Error Message",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "thNbUTWOGY",
+          "props": {
+            "data-type": "error-message",
+            "full-width": false,
+            "hide-when-empty": true,
+            "id": "fyz-aN6hyx",
+            "italic": false,
+            "mode": "error",
+            "text-align": "center",
+            "variant": "body1"
+          },
+          "type": {
+            "resolvedName": "ErrorMessage"
+          }
+        },
+        "oOOUcyEOVr": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "resend"
+          ],
+          "parent": "yZNZ2ZVVu_",
+          "props": {
+            "align": "start",
+            "background": "#ffffff00",
+            "data-editor-type": "container",
+            "direction": "row",
+            "id": "oOOUcyEOVr",
+            "justify": "center",
+            "paddingX": "5",
+            "paddingY": "0",
+            "spaceBetween": "0",
+            "st-items-grow": 0,
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "resend": {
+          "custom": {
+            "type": "button"
+          },
+          "displayName": "Button",
+          "hidden": false,
+          "isCanvas": false,
+          "linkedNodes": {},
+          "nodes": [],
+          "parent": "oOOUcyEOVr",
+          "props": {
+            "auto-submit": false,
+            "children": "Send again",
+            "color": "primary",
+            "data-type": "button",
+            "formNoValidate": true,
+            "full-width": true,
+            "id": "resend",
+            "mode": "primary",
+            "size": "sm",
+            "variant": "link"
+          },
+          "type": {
+            "resolvedName": "Button"
+          }
+        },
+        "thNbUTWOGY": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "fyz-aN6hyx"
+          ],
+          "parent": "yZNZ2ZVVu_",
+          "props": {
+            "align": "start",
+            "background": "#ffffff00",
+            "data-editor-type": "container",
+            "direction": "row",
+            "id": "thNbUTWOGY",
+            "justify": "center",
+            "paddingX": "4",
+            "paddingY": "3",
+            "spaceBetween": "1",
+            "st-items-grow": 0,
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        },
+        "yZNZ2ZVVu_": {
+          "custom": {},
+          "displayName": "Container",
+          "hidden": false,
+          "isCanvas": true,
+          "linkedNodes": {},
+          "nodes": [
+            "SgSm98sFRr",
+            "thNbUTWOGY",
+            "oOOUcyEOVr"
+          ],
+          "parent": "ROOT",
+          "props": {
+            "align": "center",
+            "background": "",
+            "data-editor-type": "container",
+            "direction": "column",
+            "id": "yZNZ2ZVVu_",
+            "justify": "start",
+            "paddingX": "4",
+            "paddingY": "4",
+            "spaceBetween": "1.5",
+            "st-items-grow": 0,
+            "width": "100%"
+          },
+          "type": {
+            "resolvedName": "Container"
+          }
+        }
+      },
+      "interactions": [
+        {
+          "id": "SgSm98sFRr",
+          "label": "Verify OTP code"
+        },
+        {
+          "id": "resend",
+          "label": "Send again"
+        }
+      ],
+      "screenId": "SC3DUgNwih95viffZJfQXMTXFOYE8"
+    }
+  ]
+}

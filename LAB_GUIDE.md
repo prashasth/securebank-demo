@@ -820,23 +820,34 @@ Now that enrollment is in place, we can consolidate. In this use case we **repla
 
 Same SDK — `@descope/nextjs-sdk`. The only difference is the `flowId` passed to the `<Descope>` component.
 
-The Flow used is **`sign-up-or-in-bank`** — built from Descope's **"Sign up or in - passkeys"** template. This flow:
-1. Asks for an email
-2. Checks if the user has a passkey registered for this device → if yes, triggers the browser's biometric prompt immediately
+The Flow used is **`sign-up-or-in-bank`** — a custom flow built by combining steps from three Descope templates (passkey sign-in, passkey-or-magic-link signup, and password sign-in). This flow:
+1. Asks for an email (or offers a passkey button on the welcome screen)
+2. Checks if the user exists and has a passkey → if yes, triggers the browser's biometric prompt immediately
 3. If no passkey → falls back to password login
 4. After password login → prompts the user to enroll a passkey inline (replaces the dashboard modal from UC3)
+5. For brand-new users → sends a magic link, collects a name, then offers passkey enrollment
 
 ---
 
-### Step 1 — Create the sign-up-or-in-bank flow in Descope Console
+### Step 1 — Import the sign-up-or-in-bank flow into Descope Console
 
-Go to **Console → Flows → Start from template**, filter by **Passkeys**, and select **"Sign up or in - passkeys"**. Name the flow `sign-up-or-in-bank`.
+This flow was built by hand, combining steps from three Descope templates: passkey sign-in with device detection, passkey-or-magic-link signup for new users, and password sign-in with OTP fallback. Rather than re-building it step by step, import the pre-built version from the repo.
 
-The flow handles all user states automatically — you don't need to modify the diagram:
+The flow JSON is at `flows/sign-up-or-in-bank.json` in the project. Go to **Console → Flows**, click **Import** (top-right), and upload that file.
+
+The imported flow handles all three user states in one diagram:
 
 > ![sign-up-or-in-bank flow diagram](screenshots/uc4-00-flow-diagram.png)
 
-Click **Save**.
+The three paths through the flow:
+
+| User | What the flow does |
+|------|-------------------|
+| Returning user with passkey | Passkey button on welcome screen → biometric prompt → logged in |
+| Returning user without passkey (Alex) | Email → Continue → password screen → "Configure Passkeys?" → logged in |
+| Brand new user | Email → Continue → magic link → enter full name → "Configure Passkeys?" → logged in |
+
+Click **Save** after importing.
 
 ---
 
@@ -1064,14 +1075,14 @@ Type `Promote passkeys` to confirm deletion:
 
 ---
 
-### Step 5 — Test both users
+### Step 5 — Test all three scenarios
 
 Start the dev server:
 ```bash
 npm run dev
 ```
 
-**Test Priya (has a passkey enrolled):**
+**Scenario 1 — Priya (returning user with passkey enrolled):**
 
 Enter `priya@securebank.com` and click Continue. The browser immediately shows a biometric prompt — no password screen:
 
@@ -1079,7 +1090,7 @@ Enter `priya@securebank.com` and click Continue. The browser immediately shows a
 
 Confirm with Touch ID (or your device's biometric). Priya lands on the dashboard in one tap.
 
-**Test Alex (no passkey enrolled):**
+**Scenario 2 — Alex (returning user, no passkey):**
 
 Enter `alex@securebank.com` and click Continue. Alex has no passkey, so the flow falls back to the password screen:
 
@@ -1093,7 +1104,17 @@ Alex can enroll or skip. Either way, he lands on the dashboard:
 
 > ![Alex dashboard after login](screenshots/uc4-05-alex-dashboard.png)
 
-✅ **Use Case 4 complete.** One flow now handles every user state: passkey login for enrolled users, password + inline enrollment for everyone else. The dashboard is clean — no authentication logic. The `promote-passkeys` flow and the dashboard modal are gone.
+**Scenario 3 — Brand new user:**
+
+Enter an email address that doesn't exist in Descope yet (e.g. a personal email you have access to). Click Continue. The flow detects the user doesn't exist and sends a magic link:
+
+> _No screenshot needed — the flow shows a "We've sent a verification link to [email]" screen_
+
+Click the link in the email. The flow asks for a full name (required for new accounts), then checks if your device supports passkeys. If it does, it shows the "Configure Passkeys?" prompt — same screen Alex saw. Enroll or skip. You'll land on the "You're authenticated" confirmation screen (Descope's default for new-user signup, before your app has a profile for them).
+
+> **Note:** New users created this way won't have a balance or transactions in SecureBank because `lib/data.ts` only has entries for Priya and Alex. That's expected — this scenario just demonstrates that the flow handles first-time signups cleanly without any extra code.
+
+✅ **Use Case 4 complete.** One flow now handles every user state: passkey login for enrolled users, password + inline enrollment for returning users without passkeys, and magic link + name collection for brand-new signups. The dashboard is clean — no authentication logic. The `promote-passkeys` flow and the dashboard modal are gone.
 
 ---
 
