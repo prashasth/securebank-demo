@@ -2,20 +2,50 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { useUser } from "@descope/nextjs-sdk/client";
 import { formatCurrency } from "@/lib/data";
 import NavBar from "@/components/NavBar";
-import { TrendingUp, TrendingDown, ArrowRight, CreditCard, Activity } from "lucide-react";
+import { TrendingUp, TrendingDown, ArrowRight, CreditCard, Activity, Shield } from "lucide-react";
 
 export default function DashboardPage() {
-  const { user, transactions } = useAuth();
+  const { user, transactions, logout } = useAuth();
+  const { user: descopeUser } = useUser();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!user) router.replace("/");
-    if (user?.role === "admin") router.replace("/admin");
-  }, [user, router]);
+  const isAuthenticated = !!descopeUser?.email;
 
-  if (!user || user.role === "admin") return null;
+  useEffect(() => {
+    if (!isAuthenticated) router.replace("/");
+    if (user?.role === "admin") router.replace("/admin");
+  }, [user, router, isAuthenticated]);
+
+  if (!isAuthenticated) return null;
+
+  if (!user) {
+    const name = descopeUser?.name || descopeUser?.email || "there";
+    return (
+      <div style={{ minHeight: "100vh", background: "var(--off-white)" }}>
+        <NavBar />
+        <div style={{ maxWidth: "600px", margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
+          <div style={{ width: "64px", height: "64px", background: "var(--navy)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
+            <Shield size={32} color="var(--gold)" />
+          </div>
+          <h1 style={{ fontSize: "28px", fontWeight: "700", color: "var(--navy)", marginBottom: "12px" }}>
+            Welcome to <span style={{ color: "var(--gold)" }}>SecureBank</span>, {name}!
+          </h1>
+          <p style={{ color: "var(--text-muted)", fontSize: "15px", fontFamily: "Trebuchet MS, sans-serif", lineHeight: "1.7", marginBottom: "32px" }}>
+            Your identity has been verified successfully. Your bank account is being set up and will be ready shortly. Please contact your branch for further assistance.
+          </p>
+          <button onClick={logout}
+            style={{ padding: "12px 28px", background: "var(--navy)", color: "var(--gold)", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: "700", cursor: "pointer", fontFamily: "Trebuchet MS, sans-serif", letterSpacing: "1px" }}>
+            SIGN OUT
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (user.role === "admin") return null;
 
   const txns = transactions.filter((t) => t.userId === user.id).slice(0, 5);
   const credits = txns.filter((t) => t.type === "credit").reduce((s, t) => s + t.amount, 0);
