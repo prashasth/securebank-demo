@@ -1275,7 +1275,118 @@ The key insight: at the point in the flow where this condition runs, the user ha
 
 ---
 
-## Use Case 6 — Session Management
+## Use Case 6 — Connectors
+
+**Goal:** Extend Descope flows with third-party services using Connectors — without writing any integration code.
+
+Connectors let you call external APIs directly from inside a Descope flow. You configure them once in Console, then drop them into any flow as a step. The flow handles the call, inspects the result, and routes accordingly.
+
+This use case demonstrates connectors using **Have I Been Pwned (HIBP)** — a breach intelligence service that checks whether a password has appeared in any known data breach. It plugs into the sign-up flow to block compromised passwords before an account is created.
+
+**No code changes required.** Everything is configured inside Descope Console.
+
+---
+
+### The problem this solves
+
+Password policies (minimum length, uppercase, numbers, symbols) only check password *structure*. They have no way to know whether that password has already been leaked in a public data breach.
+
+`Admin@123` passes every rule:
+- 8+ characters ✓
+- Uppercase ✓
+- Lowercase ✓
+- Number ✓
+- Symbol ✓
+
+But it has appeared in millions of breach databases. If a user sets it, their account is immediately at risk. Stricter policy rules won't help — the problem isn't the structure of the password, it's the history of it.
+
+---
+
+### Step 1 — Add the Have I Been Pwned connector
+
+Navigate to **Console → Connectors**.
+
+Search for **"have"** in the All Connector Templates section.
+
+![uc6-01](screenshots/uc6-01.png)
+
+Click the **Have I Been Pwned** template card. The connector description reads:
+
+> "Check if passwords have been previously exposed in data breaches with the Have I Been Pwned connector."
+
+Give it a name (e.g. `Have I Been Pwned`) and save. It will now appear in your active connectors list at the top of the Connectors page.
+
+> **What just happened:** Descope registered the HIBP connector in your project. It uses the k-anonymity model — your users' actual passwords are never sent to HIBP. Only the first 5 characters of a SHA-1 hash are transmitted, and the match happens locally. HIBP never sees the full password.
+
+---
+
+### Step 2 — Add the HIBP step to your flow
+
+Navigate to **Console → Flows** and open the **`sign-up-or-in-passwords`** flow.
+
+The sign-up path currently ends at:
+`Set Password → Update Password → END`
+
+You need to insert the HIBP check between those two steps.
+
+Click the **+** button after the **Set Password** step to add a new step. In the connector picker that appears, select **Have I Been Pwned / Breached Password Check**.
+
+![uc6-02](screenshots/uc6-02.png)
+
+Connect the steps so the flow reads:
+`Set Password → Have I Been Pwned / Breached Password Check → Update Password → END`
+
+The HIBP step has two outputs:
+- **Success** → wire to **Update Password** (password is clean, proceed)
+- _(breach detected)_ → the step automatically surfaces an error on the Set Password screen and loops back, forcing re-entry
+
+Click **Save**.
+
+> **What just happened:** The HIBP connector now intercepts every new password before it gets written to the user's account. If the password appears in any known breach, the user is blocked from proceeding and must choose a different one.
+
+---
+
+### Step 3 — Test it
+
+Click **Run** (top-right of the flow canvas).
+
+![uc6-03](screenshots/uc6-03.png)
+
+Sign up with a new email address and verify the OTP. When you reach the **Set Password** screen, enter:
+
+```
+Password: Admin@123
+Confirm:  Admin@123
+```
+
+Click **Continue**.
+
+![uc6-04](screenshots/uc6-04.png)
+
+You will see:
+
+> **"Password used has appeared in a public data breach, please use a different password"**
+
+![uc6-05](screenshots/uc6-05.png)
+
+The form stays on the Set Password screen. The account is not created until a clean password is chosen.
+
+> **What just happened:** `Admin@123` passes all password policy rules but is present in HIBP's breach database. Descope blocked it before the account was created — with no custom code, no API calls in your app, and no exposure of the actual password to HIBP.
+
+---
+
+### What changed
+
+| Before | After |
+|--------|-------|
+| New users could set any password that met policy rules | Passwords are also checked against billions of known breached passwords |
+| A structurally "strong" password like `Admin@123` would be accepted | `Admin@123` is blocked at signup with a clear error message |
+| Protection relied entirely on password complexity settings | Protection now includes real-world breach intelligence |
+| Breach detection would require custom API integration | Fully configured inside Descope Console — zero code changes |
+
+---
+
+## Use Case 7 — Session Management
 
 ### Why are we doing this?
 
@@ -1915,36 +2026,36 @@ For production, you would tighten the Session Token Timeout and enable refresh t
 
 ---
 
-## Use Case 7 — Step-Up Auth
+## Use Case 8 — Step-Up Auth
 
 > _Coming soon_
 
 ---
 
-## Use Case 8 — Geolocation Step-Up
+## Use Case 9 — Geolocation Step-Up
 
 > _Coming soon_
 
 ---
 
-## Use Case 9 — Geolocation Blocking
+## Use Case 10 — Geolocation Blocking
 
 > _Coming soon_
 
 ---
 
-## Use Case 10 — Account Recovery
+## Use Case 11 — Account Recovery
 
 > _Coming soon_
 
 ---
 
-## Use Case 11 — User Management
+## Use Case 12 — User Management
 
 > _Coming soon_
 
 ---
 
-## Use Case 12 — Audit Logs
+## Use Case 13 — Audit Logs
 
 > _Coming soon_
