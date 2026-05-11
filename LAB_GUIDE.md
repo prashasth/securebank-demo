@@ -794,6 +794,23 @@ Log out and log back in as Priya — the modal should **not** appear this time b
 
 ---
 
+> ### Switching to the Blackbox Track
+>
+> From Use Case 4 onwards, the only change in each use case is **which flow ID you pass to the app** — the surrounding code stays the same. If you'd prefer to skip writing code and focus purely on Descope Console and flow configuration, switch to the `blackbox` branch now:
+>
+> ```bash
+> git checkout blackbox
+> cp .env.local.example .env.local
+> # Fill in your Project ID, Management Key, and flow ID, then:
+> npm run dev
+> ```
+>
+> In the `blackbox` branch the flow ID is driven by `NEXT_PUBLIC_DESCOPE_FLOW_LOGIN` in `.env.local`. For each use case below, just update that value and restart the dev server — no code edits needed.
+>
+> If you're following the **developer track**, stay on `solution` and continue as written below.
+
+---
+
 ## Use Case 4 — Passwordless Login
 
 ### Why are we doing this?
